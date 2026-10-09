@@ -4,3 +4,9 @@ __pycache__/
 .vscode/
 dashboard_preview.png
 .playwright-mcp/
+node_modules/
+*.png
+!assets/**/*.png
+*.pdf
+~$*
+
