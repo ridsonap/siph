@@ -61,7 +61,7 @@
   <main class="w-full max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 space-y-4 sm:space-y-6 min-w-0">
 
     <!-- VIEW NAVIGATION TABS -->
-    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-slate-200 pb-3">
       <div class="flex items-center gap-2">
         <button id="tabSulselBtn" class="flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-900 text-white shadow-sm cursor-pointer">
           <span>🌐</span>
@@ -74,8 +74,13 @@
         </button>
       </div>
 
-      <!-- Quick Switch Helper text -->
-      <span class="text-[11px] text-slate-400 hidden md:inline">Klik kabupaten di peta untuk analisis mendalam</span>
+      <!-- Quick Regency Switcher from anywhere -->
+      <div class="flex items-center gap-1.5 self-start sm:self-auto">
+        <label for="headerQuickKabSelect" class="text-xs text-slate-500 font-semibold uppercase tracking-wider hidden md:inline">Pilih Daerah:</label>
+        <select id="headerQuickKabSelect" class="text-xs font-bold bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer shadow-sm">
+          <option value="" disabled selected>🔍 Cari / Pilih Kab/Kot...</option>
+        </select>
+      </div>
     </div>
 
     <!-- TAB 1: IKHTISAR PROVINSI SULSEL -->
@@ -347,7 +352,7 @@
             <!-- Regency Selector -->
             <div class="flex items-center gap-1.5">
               <label for="kabSelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:block">Daerah:</label>
-              <select id="kabSelect" class="text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer">
+              <select id="kabSelect" class="text-xs sm:text-sm font-bold bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-900 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer">
                 <!-- Populated via JS -->
               </select>
             </div>
@@ -356,7 +361,7 @@
             <div class="flex items-center gap-1.5">
               <label for="kabYearSelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:block">Tahun:</label>
               <select id="kabYearSelect" class="text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer">
-                <option value="ALL">Semua Tahun (2023-2026)</option>
+                <option value="ALL">Semua Tahun</option>
                 <option value="2026" selected>2026</option>
                 <option value="2025">2025</option>
                 <option value="2024">2024</option>
@@ -364,17 +369,59 @@
               </select>
             </div>
 
+            <!-- Month Filter -->
+            <div class="flex items-center gap-1.5">
+              <label for="kabMonthSelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:block">Bulan:</label>
+              <select id="kabMonthSelect" class="text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer">
+                <option value="ALL" selected>Semua Bulan</option>
+                <option value="1">Januari</option>
+                <option value="2">Februari</option>
+                <option value="3">Maret</option>
+                <option value="4">April (HBKN)</option>
+                <option value="5">Mei</option>
+                <option value="6">Juni</option>
+                <option value="7">Juli</option>
+                <option value="8">Agustus</option>
+                <option value="9">September</option>
+                <option value="10">Oktober</option>
+                <option value="11">November</option>
+                <option value="12">Desember</option>
+              </select>
+            </div>
+
+            <!-- Commodity Filter -->
+            <div class="flex items-center gap-1.5">
+              <label for="kabCommoditySelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:block">Komoditas:</label>
+              <select id="kabCommoditySelect" class="text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer">
+                <option value="ALL" selected>Semua Komoditas</option>
+              </select>
+            </div>
+
+            <!-- Share / Direct Link Button -->
+            <button id="kabShareLinkBtn" title="Salin link langsung untuk kabupaten ini" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1 shadow-sm cursor-pointer">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+              <span id="kabShareLinkText">Bagikan</span>
+            </button>
+
             <!-- Download CSV for this regency -->
-            <button id="kabExportCsvBtn" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+            <button id="kabExportCsvBtn" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1.5 shadow-sm cursor-pointer">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span>CSV Daerah</span>
+              <span>CSV</span>
             </button>
 
             <!-- Bahan Paparan TPID Modal Trigger -->
-            <button id="kabOpenSlideModalBtn" class="text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <button id="kabOpenSlideModalBtn" class="text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm cursor-pointer">
               <span>📊</span>
-              <span>Bahan Paparan Pemda / TPID</span>
+              <span>Bahan Paparan TPID</span>
             </button>
+          </div>
+        </div>
+
+        <!-- Quick Regency Filter Chips (Horizontally Scrollable) -->
+        <div class="mt-3 pt-3 border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0 mr-1">Pilih Cepat Daerah:</span>
+          <div id="kabQuickChipsContainer" class="flex items-center gap-1.5 shrink-0">
+            <!-- Populated via JS -->
           </div>
         </div>
       </section>
