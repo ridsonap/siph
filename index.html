@@ -60,6 +60,27 @@
   <!-- MAIN CONTAINER -->
   <main class="w-full max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 space-y-4 sm:space-y-6 min-w-0">
 
+    <!-- VIEW NAVIGATION TABS -->
+    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+      <div class="flex items-center gap-2">
+        <button id="tabSulselBtn" class="flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-900 text-white shadow-sm cursor-pointer">
+          <span>🌐</span>
+          <span>Ikhtisar Provinsi Sulsel</span>
+        </button>
+        <button id="tabKabupatenBtn" class="flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 cursor-pointer">
+          <span>🏛️</span>
+          <span>Analisis Mandiri Daerah</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold border border-rose-200 ml-1">24 Daerah</span>
+        </button>
+      </div>
+
+      <!-- Quick Switch Helper text -->
+      <span class="text-[11px] text-slate-400 hidden md:inline">Klik kabupaten di peta untuk analisis mendalam</span>
+    </div>
+
+    <!-- TAB 1: IKHTISAR PROVINSI SULSEL -->
+    <div id="viewSulsel" class="space-y-4 sm:space-y-6">
+
     <!-- EXECUTIVE KPI ROW -->
     <section>
       <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
@@ -306,7 +327,277 @@
       </div>
     </section>
 
+    </div><!-- END TAB 1: IKHTISAR PROVINSI SULSEL -->
+
+    <!-- TAB 2: ANALISIS MANDIRI KABUPATEN/KOTA -->
+    <div id="viewKabupaten" class="space-y-4 sm:space-y-6 hidden">
+
+      <!-- KABUPATEN CONTROL HEADER -->
+      <section class="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-lg sm:text-xl font-extrabold text-slate-900" id="kabTitleHeader">Kab. Kepulauan Selayar</span>
+              <span id="kabBadgeStatusType" class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full font-bold bg-sky-100 text-sky-800 border border-sky-200">16 Daerah IPH</span>
+            </div>
+            <p class="text-xs text-slate-500" id="kabSubtitleHeader">Analisis mendalam fluktuasi harga komoditas dan bahan paparan TPID daerah</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Regency Selector -->
+            <div class="flex items-center gap-1.5">
+              <label for="kabSelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:block">Daerah:</label>
+              <select id="kabSelect" class="text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer">
+                <!-- Populated via JS -->
+              </select>
+            </div>
+
+            <!-- Year Selector -->
+            <div class="flex items-center gap-1.5">
+              <label for="kabYearSelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden sm:block">Tahun:</label>
+              <select id="kabYearSelect" class="text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer">
+                <option value="ALL">Semua Tahun (2023-2026)</option>
+                <option value="2026" selected>2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+              </select>
+            </div>
+
+            <!-- Download CSV for this regency -->
+            <button id="kabExportCsvBtn" class="text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-300 transition flex items-center gap-1.5 shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>CSV Daerah</span>
+            </button>
+
+            <!-- Bahan Paparan TPID Modal Trigger -->
+            <button id="kabOpenSlideModalBtn" class="text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+              <span>📊</span>
+              <span>Bahan Paparan Pemda / TPID</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- KABUPATEN KPI ROW -->
+      <section>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-4">
+          <!-- Card 1: IPH Terkini -->
+          <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+              <span>IPH Terkini</span>
+              <span id="kabKpiLatestBadge" class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded font-bold"></span>
+            </div>
+            <div class="my-1.5 sm:my-2">
+              <div id="kabKpiLatestVal" class="text-xl sm:text-3xl font-extrabold tracking-tight font-mono text-slate-900">0.00%</div>
+            </div>
+            <div id="kabKpiLatestSub" class="text-[10px] sm:text-xs text-slate-400 truncate">Rilis Terakhir</div>
+          </div>
+
+          <!-- Card 2: Peringkat Inflasi di Sulsel -->
+          <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Peringkat di Sulsel</div>
+            <div class="my-1.5 sm:my-2">
+              <div id="kabKpiRankVal" class="text-xl sm:text-3xl font-extrabold tracking-tight font-mono text-slate-900">#0</div>
+            </div>
+            <div id="kabKpiRankSub" class="text-[10px] sm:text-xs text-slate-400 truncate">Dari total daerah aktif</div>
+          </div>
+
+          <!-- Card 3: Rata-Rata IPH Tahunan -->
+          <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Rata-Rata IPH</div>
+            <div class="my-1.5 sm:my-2">
+              <div id="kabKpiAvgVal" class="text-xl sm:text-3xl font-extrabold tracking-tight font-mono text-slate-900">0.00%</div>
+            </div>
+            <div id="kabKpiAvgSub" class="text-[10px] sm:text-xs text-slate-400 truncate">0 rilis mingguan</div>
+          </div>
+
+          <!-- Card 4: Puncak & Trough -->
+          <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Rentang Fluktuasi</div>
+            <div class="my-1.5 sm:my-2 space-y-0.5">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-rose-600 font-bold" id="kabKpiPeakVal">+0.00%</span>
+                <span class="text-[10px] text-slate-400" id="kabKpiPeakLabel">Max</span>
+              </div>
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-emerald-600 font-bold" id="kabKpiTroughVal">-0.00%</span>
+                <span class="text-[10px] text-slate-400" id="kabKpiTroughLabel">Min</span>
+              </div>
+            </div>
+            <div class="text-[10px] sm:text-[11px] text-slate-400 truncate">Puncak & Deflasi terdalam</div>
+          </div>
+
+          <!-- Card 5: Pemicu Gejolak Terbanyak -->
+          <div class="col-span-2 md:col-span-1 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+            <div class="text-[10px] sm:text-xs font-semibold text-amber-600 uppercase tracking-wider">Paling Sering Bergejolak</div>
+            <div class="my-1.5 sm:my-2">
+              <div id="kabKpiThreatVal" class="text-base sm:text-xl font-bold text-slate-900 line-clamp-1">-</div>
+            </div>
+            <div id="kabKpiThreatSub" class="text-[10px] sm:text-xs text-slate-400 truncate">Frekuensi fluktuasi tertinggi</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- KABUPATEN NARRATIVE BANNER -->
+      <section>
+        <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-xl sm:rounded-2xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-[10px] sm:text-xs font-mono tracking-widest text-slate-400 uppercase">Evaluasi Situasi Harga Pangan Daerah</span>
+            </div>
+            <p id="kabNarrativeText" class="text-xs sm:text-sm md:text-base text-slate-200 leading-relaxed">
+              Memuat rangkuman situasi IPH untuk kabupaten terpilih...
+            </p>
+          </div>
+          <div class="w-full md:w-auto shrink-0">
+            <button id="kabScrollToHistoryBtn" class="w-full md:w-auto px-3.5 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 transition text-center cursor-pointer">Lihat Rincian Mingguan</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- KABUPATEN VISUALIZATION ROW -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
+        <!-- Dual Line: Regency vs Sulsel Benchmark (7 cols) -->
+        <div class="lg:col-span-7 bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h2 class="text-sm sm:text-base font-bold text-slate-900" id="kabChartLineTitle">Tren IPH Daerah vs Rata-Rata Sulsel</h2>
+              <p class="text-[11px] sm:text-xs text-slate-500">Perbandingan dinamika mingguan terhadap benchmark provinsi</p>
+            </div>
+            <span id="kabLineYearBadge" class="text-[11px] sm:text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded"></span>
+          </div>
+          <div id="kabTimeSeriesChart" class="w-full h-[320px] sm:h-[380px]"></div>
+        </div>
+
+        <!-- Threat Commodities Bar Chart for Regency (5 cols) -->
+        <div class="lg:col-span-5 bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="mb-3">
+            <h2 class="text-sm sm:text-base font-bold text-slate-900">Komoditas Paling Sering Bergejolak</h2>
+            <p class="text-[11px] sm:text-xs text-slate-500">Frekuensi kemunculan sebagai fluktuasi tertinggi di daerah ini</p>
+          </div>
+          <div id="kabThreatChart" class="w-full h-[320px] sm:h-[380px]"></div>
+        </div>
+      </section>
+
+      <!-- COMMODITY INFLATION & DEFLATION DRIVERS MATRIX -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+        <!-- Top Positive Drivers -->
+        <div class="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="text-xs sm:text-sm font-bold text-rose-700 flex items-center gap-1.5">
+                <span>▲</span>
+                <span>Top Komoditas Pemicu Inflasi (Andil Positif)</span>
+              </h3>
+              <p class="text-[11px] text-slate-500">Komoditas dengan andil kenaikan harga rata-rata terbesar</p>
+            </div>
+          </div>
+          <div id="kabTopInflationList" class="space-y-2">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Top Negative Drivers -->
+        <div class="bg-white p-4 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div>
+              <h3 class="text-xs sm:text-sm font-bold text-emerald-700 flex items-center gap-1.5">
+                <span>▼</span>
+                <span>Top Komoditas Pendorong Deflasi (Andil Negatif)</span>
+              </h3>
+              <p class="text-[11px] text-slate-500">Komoditas dengan andil penurunan harga rata-rata terbesar</p>
+            </div>
+          </div>
+          <div id="kabTopDeflationList" class="space-y-2">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- REGENCY WEEKLY DATA TABLE -->
+      <section id="kabHistorySection" class="bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
+          <div>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900" id="kabTableHeading">Riwayat Rilis Mingguan Daerah</h2>
+            <p class="text-[11px] sm:text-xs text-slate-500">Rincian nilai IPH, komoditas penyumbang, dan perbandingan Sulsel</p>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <!-- Table Search -->
+            <input type="text" id="kabTableSearchInput" placeholder="Cari periode atau komoditas..." class="text-xs bg-slate-100 border border-slate-200 rounded-lg pl-3 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 w-full sm:w-56">
+
+            <!-- Status Filter -->
+            <select id="kabTableStatusFilter" class="text-xs bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer shrink-0">
+              <option value="ALL">Semua Status</option>
+              <option value="Naik">Naik</option>
+              <option value="Turun">Turun</option>
+              <option value="Stabil">Stabil</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-200 scroll-touch">
+          <table class="min-w-[700px] w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+              <tr>
+                <th class="px-3.5 sm:px-4 py-2.5 sm:py-3">Periode</th>
+                <th class="px-3.5 sm:px-4 py-2.5 sm:py-3 text-right">IPH Daerah</th>
+                <th class="px-3.5 sm:px-4 py-2.5 sm:py-3 text-center">Status</th>
+                <th class="px-3.5 sm:px-4 py-2.5 sm:py-3 text-right">Rata-Rata Sulsel</th>
+                <th class="px-3.5 sm:px-4 py-2.5 sm:py-3 text-center">Peringkat Sulsel</th>
+                <th class="px-3.5 sm:px-4 py-2.5 sm:py-3">Andil Komoditas Utama</th>
+                <th class="px-3.5 sm:px-4 py-2.5 sm:py-3">Fluktuasi Tertinggi</th>
+                <th class="px-3.5 sm:px-4 py-2.5 sm:py-3 text-right">Nilai CV</th>
+              </tr>
+            </thead>
+            <tbody id="kabDataTableBody" class="divide-y divide-slate-100 font-normal">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
+          <span id="kabTableRowsCount">Menampilkan 0 baris</span>
+        </div>
+      </section>
+
+    </div><!-- END TAB 2: ANALISIS MANDIRI KABUPATEN/KOTA -->
+
   </main>
+
+  <!-- MODAL: BAHAN PAPARAN PEMDA / TPID SLIDE DECK VIEW -->
+  <div id="slideModal" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center p-3 sm:p-6 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-5xl w-full my-auto shadow-2xl border border-slate-200 flex flex-col max-h-[92vh] overflow-hidden">
+      
+      <!-- Modal Header (Non-printable controls) -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📊</span>
+          <div>
+            <h3 class="text-sm sm:text-base font-bold text-slate-900" id="slideModalTitle">Bahan Paparan Pimpinan Daerah</h3>
+            <p class="text-[11px] text-slate-500" id="slideModalSubtitle">Ringkasan Eksekutif Dinamika IPH untuk Rapat Koordinasi TPID</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="slideModalPrintBtn" class="text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+            <span>Cetak / PDF Slide</span>
+          </button>
+          <button id="slideModalCloseBtn" class="text-xs font-semibold bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-lg transition cursor-pointer">
+            Tutup
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Printable Slides Content) -->
+      <div id="slidePrintArea" class="p-4 sm:p-8 overflow-y-auto space-y-6 sm:space-y-8 bg-slate-100">
+        <!-- Populated dynamically via JS -->
+      </div>
+
+    </div>
+  </div>
 
   <!-- FOOTER -->
   <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500 space-y-1">

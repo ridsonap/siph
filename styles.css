@@ -61,3 +61,46 @@ body {
   color: #ffffff;
   border-color: #0f172a;
 }
+
+/* Slide Deck Styling */
+.slide-card {
+  page-break-after: always;
+  break-after: page;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #slideModal, #slideModal * {
+    visibility: visible;
+  }
+  #slideModal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    display: block !important;
+  }
+  #slideModal > div {
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  #slideModal .border-b,
+  #slideModal button {
+    display: none !important;
+  }
+  #slidePrintArea {
+    background: transparent !important;
+    padding: 0 !important;
+  }
+  .slide-card {
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: none !important;
+    margin-bottom: 2rem !important;
+  }
+}
