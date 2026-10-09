@@ -334,7 +334,7 @@
       viewKabupaten.classList.add('hidden');
       headerPeriodWrapper?.classList.remove('hidden');
       exportCsvBtnMobile?.classList.remove('hidden');
-      headerQuickKabContainer?.classList.remove('sm:hidden');
+      headerQuickKabContainer?.classList.remove('hidden');
       setTimeout(() => {
         mapChart?.resize();
         barChart?.resize();
@@ -348,7 +348,7 @@
       viewKabupaten.classList.remove('hidden');
       headerPeriodWrapper?.classList.add('hidden');
       exportCsvBtnMobile?.classList.add('hidden');
-      headerQuickKabContainer?.classList.add('sm:hidden');
+      headerQuickKabContainer?.classList.add('hidden');
       renderKabupatenView();
       setTimeout(() => {
         kabTimeSeriesChart?.resize();
@@ -904,7 +904,8 @@
     const statusFilter = tableStatusFilter.value;
 
     let filtered = p.records.filter(r => {
-      const matchSearch = r.nama_kab.toLowerCase().includes(query) || r.kode_kab.includes(query);
+      const matchComm = (r.komoditas && r.komoditas.some(c => c.nama.toLowerCase().includes(query))) || (r.fluktuasi_tertinggi && r.fluktuasi_tertinggi.toLowerCase().includes(query));
+      const matchSearch = r.nama_kab.toLowerCase().includes(query) || r.kode_kab.includes(query) || matchComm;
       const matchStatus = statusFilter === 'ALL' || r.status === statusFilter;
       return matchSearch && matchStatus;
     });
@@ -915,30 +916,52 @@
       tableRowsCountMobile.textContent = `${filtered.length} daerah`;
     }
 
+    if (filtered.length === 0) {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="7" class="px-4 py-8 text-center text-slate-400 text-xs">Tidak ada data daerah yang sesuai dengan pencarian atau filter.</td>`;
+      dataTableBody.appendChild(tr);
+      return;
+    }
+
     filtered.forEach(r => {
       const tr = document.createElement('tr');
       tr.className = 'hover:bg-slate-50 transition border-b border-slate-100 cursor-pointer';
 
       const iphBadgeColor = r.status === 'Naik' ? 'text-rose-600 bg-rose-50' : (r.status === 'Turun' ? 'text-emerald-600 bg-emerald-50' : 'text-slate-600 bg-slate-50');
       const commBadges = r.komoditas && r.komoditas.length > 0 
-        ? r.komoditas.map(c => `<span class=\"inline-block bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] mr-1 mb-0.5 font-medium\">${c.nama} (${c.kontribusi > 0 ? '+' : ''}${c.kontribusi})</span>`).join('')
-        : '<span class=\"text-slate-400\">-</span>';
+        ? r.komoditas.map(c => `
+          <span class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium border border-slate-200/80 transition shrink-0">
+            <span>${c.nama}</span>
+            <span class="font-mono text-[10px] ${c.kontribusi > 0 ? 'text-rose-600 font-semibold' : (c.kontribusi < 0 ? 'text-emerald-600 font-semibold' : 'text-slate-500')}">
+              ${c.kontribusi > 0 ? '+' : ''}${c.kontribusi}
+            </span>
+          </span>
+        `).join('')
+        : '<span class="text-slate-400 italic text-[11px]">-</span>';
 
       tr.innerHTML = `
-        <td class=\"px-4 py-3 font-mono text-slate-400\">${r.kode_kab}</td>
-        <td class=\"px-4 py-3 font-semibold text-slate-800 flex items-center justify-between\">
-          <span>${r.nama_kab}</span>
-          <span class=\"text-[10px] text-blue-600 hover:underline\">Analisis →</span>
+        <td class="px-3.5 py-3 font-mono text-slate-400 whitespace-nowrap">${r.kode_kab}</td>
+        <td class="px-3.5 py-3 font-semibold text-slate-800">
+          <div class="flex items-center justify-between gap-2 min-w-[160px]">
+            <span>${r.nama_kab}</span>
+            <span class="text-[10px] text-blue-600 font-bold hover:underline shrink-0">Analisis →</span>
+          </div>
         </td>
-        <td class=\"px-4 py-3 text-right font-mono font-bold ${r.iph > 0 ? 'text-rose-600' : (r.iph < 0 ? 'text-emerald-600' : 'text-slate-600')}\">
+        <td class="px-3.5 py-3 text-right font-mono font-bold whitespace-nowrap ${r.iph > 0 ? 'text-rose-600' : (r.iph < 0 ? 'text-emerald-600' : 'text-slate-600')}">
           ${r.iph !== null ? (r.iph > 0 ? '+' : '') + r.iph.toFixed(2) + '%' : '-'}
         </td>
-        <td class=\"px-4 py-3 text-center\">
-          <span class=\"px-2 py-0.5 rounded text-[11px] font-bold ${iphBadgeColor}\">${r.status}</span>
+        <td class="px-3.5 py-3 text-center whitespace-nowrap">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold ${iphBadgeColor}">${r.status}</span>
         </td>
-        <td class=\"px-4 py-3 max-w-xs\">${commBadges}</td>
-        <td class=\"px-4 py-3 font-medium text-slate-700\">${r.fluktuasi_tertinggi || '-'}</td>
-        <td class=\"px-4 py-3 text-right font-mono text-slate-500\">${r.cv !== null ? r.cv.toFixed(4) : '-'}</td>
+        <td class="px-3.5 py-3">
+          <div class="flex flex-wrap items-center gap-1.5 min-w-[280px] max-w-md">
+            ${commBadges}
+          </div>
+        </td>
+        <td class="px-3.5 py-3 whitespace-nowrap min-w-[160px]">
+          ${r.fluktuasi_tertinggi ? `<span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/70 font-medium text-[11px]">${r.fluktuasi_tertinggi}</span>` : '<span class="text-slate-400 italic text-[11px]">-</span>'}
+        </td>
+        <td class="px-3.5 py-3 text-right font-mono text-slate-500 whitespace-nowrap">${r.cv !== null ? r.cv.toFixed(4) : '-'}</td>
       `;
 
       tr.addEventListener('click', () => {
@@ -1453,26 +1476,39 @@
 
       const iphBadgeColor = r.status === 'Naik' ? 'text-rose-600 bg-rose-50' : (r.status === 'Turun' ? 'text-emerald-600 bg-emerald-50' : 'text-slate-600 bg-slate-50');
       const commBadges = r.komoditas && r.komoditas.length > 0 
-        ? r.komoditas.map(c => `<span class=\"inline-block bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] mr-1 mb-0.5 font-medium\">${c.nama} (${c.kontribusi > 0 ? '+' : ''}${c.kontribusi})</span>`).join('')
-        : '<span class=\"text-slate-400\">-</span>';
+        ? r.komoditas.map(c => `
+          <span class="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium border border-slate-200/80 transition shrink-0">
+            <span>${c.nama}</span>
+            <span class="font-mono text-[10px] ${c.kontribusi > 0 ? 'text-rose-600 font-semibold' : (c.kontribusi < 0 ? 'text-emerald-600 font-semibold' : 'text-slate-500')}">
+              ${c.kontribusi > 0 ? '+' : ''}${c.kontribusi}
+            </span>
+          </span>
+        `).join('')
+        : '<span class="text-slate-400 italic text-[11px]">-</span>';
 
       tr.innerHTML = `
-        <td class=\"px-4 py-3 font-medium text-slate-900\">${r.label}</td>
-        <td class=\"px-4 py-3 text-right font-mono font-bold ${r.iph > 0 ? 'text-rose-600' : (r.iph < 0 ? 'text-emerald-600' : 'text-slate-600')}\">
+        <td class="px-3.5 py-3 font-medium text-slate-900 whitespace-nowrap">${r.label}</td>
+        <td class="px-3.5 py-3 text-right font-mono font-bold whitespace-nowrap ${r.iph > 0 ? 'text-rose-600' : (r.iph < 0 ? 'text-emerald-600' : 'text-slate-600')}">
           ${r.iph !== null && r.iph !== undefined ? (r.iph > 0 ? '+' : '') + r.iph.toFixed(2) + '%' : '-'}
         </td>
-        <td class=\"px-4 py-3 text-center\">
-          <span class=\"px-2 py-0.5 rounded text-[11px] font-bold ${iphBadgeColor}\">${r.status}</span>
+        <td class="px-3.5 py-3 text-center whitespace-nowrap">
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold ${iphBadgeColor}">${r.status}</span>
         </td>
-        <td class=\"px-4 py-3 text-right font-mono text-slate-600\">
+        <td class="px-3.5 py-3 text-right font-mono text-slate-600 whitespace-nowrap">
           ${r.sulsel_avg > 0 ? '+' : ''}${r.sulsel_avg}%
         </td>
-        <td class=\"px-4 py-3 text-center font-mono font-bold text-slate-700\">
+        <td class="px-3.5 py-3 text-center font-mono font-bold text-slate-700 whitespace-nowrap">
           ${r.rank ? `#${r.rank} / ${r.total_daerah}` : '-'}
         </td>
-        <td class=\"px-4 py-3 max-w-xs\">${commBadges}</td>
-        <td class=\"px-4 py-3 font-medium text-slate-700\">${r.fluktuasi_tertinggi || '-'}</td>
-        <td class=\"px-4 py-3 text-right font-mono text-slate-500\">${r.cv !== null && r.cv !== undefined ? r.cv.toFixed(4) : '-'}</td>
+        <td class="px-3.5 py-3">
+          <div class="flex flex-wrap items-center gap-1.5 min-w-[280px] max-w-md">
+            ${commBadges}
+          </div>
+        </td>
+        <td class="px-3.5 py-3 whitespace-nowrap min-w-[160px]">
+          ${r.fluktuasi_tertinggi ? `<span class="inline-flex items-center px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200/70 font-medium text-[11px]">${r.fluktuasi_tertinggi}</span>` : '<span class="text-slate-400 italic text-[11px]">-</span>'}
+        </td>
+        <td class="px-3.5 py-3 text-right font-mono text-slate-500 whitespace-nowrap">${r.cv !== null && r.cv !== undefined ? r.cv.toFixed(4) : '-'}</td>
       `;
       kabDataTableBody.appendChild(tr);
     });
