@@ -1,14 +1,13 @@
 const pptxgen = require('pptxgenjs');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 const FONT_FAMILY = 'Calibri';
 const C_BG = 'F8FAFC';
 const C_CARD = 'FFFFFF';
-const C_BORDER = 'CBD5E1'; // Higher contrast border
-const C_TEXT_MAIN = '0F172A'; // High contrast near-black
-const C_TEXT_MUTED = '334155'; // Darker for high legibility
+const C_BORDER = 'CBD5E1';
+const C_TEXT_MAIN = '0F172A';
+const C_TEXT_MUTED = '334155';
 const C_TEXT_SUB = '1E293B';
 const C_PRIMARY = '0284C7';
 const C_RED = 'DC2626';
@@ -16,18 +15,23 @@ const C_GREEN = '16A34A';
 const C_AMBER = 'D97706';
 const C_INDIGO = '4F46E5';
 
-const LOGO_SELAYAR = path.resolve('assets/logos/logo_selayar.png');
-const LOGO_BPS = path.resolve('assets/logos/logo_bps.png');
-const LOGO_SE2026 = path.resolve('assets/logos/logo_se2026.png');
+const LOGO_SELAYAR_PATH = path.resolve('assets/logos/logo_selayar.png');
+const LOGO_BPS_PATH = path.resolve('assets/logos/logo_bps.png');
+const LOGO_SE2026_PATH = path.resolve('assets/logos/logo_se2026.png');
 
-const CHART_SLIDE2 = path.resolve('assets/charts/chart_slide2.png');
-const CHART_SLIDE3 = path.resolve('assets/charts/chart_slide3.png');
-const CHART_SLIDE4 = path.resolve('assets/charts/chart_slide4.png');
-const CHART_SLIDE5 = path.resolve('assets/charts/chart_slide5.png');
-const CHART_SLIDE6 = path.resolve('assets/charts/chart_slide6.png');
+function getBase64Image(filePath) {
+  if (!fs.existsSync(filePath)) return null;
+  const ext = path.extname(filePath).replace('.', '');
+  const data = fs.readFileSync(filePath).toString('base64');
+  return `data:image/${ext};base64,${data}`;
+}
+
+const LOGO_SELAYAR = getBase64Image(LOGO_SELAYAR_PATH);
+const LOGO_BPS = getBase64Image(LOGO_BPS_PATH);
+const LOGO_SE2026 = getBase64Image(LOGO_SE2026_PATH);
 
 function addHeader(slide, category, title, subtitle) {
-  // Category Badge (Large & readable)
+  // Category Badge (Vector Shape + Editable Text)
   slide.addShape('roundRect', {
     x: 0.6, y: 0.4, w: 3.6, h: 0.36,
     rectRadius: 0.08,
@@ -40,24 +44,24 @@ function addHeader(slide, category, title, subtitle) {
     align: 'center', valign: 'middle', fontFace: FONT_FAMILY, margin: 0
   });
 
-  // Slide Title (Large 22pt)
+  // Slide Title (Editable Text)
   slide.addText(title, {
     x: 0.6, y: 0.82, w: 10.4, h: 0.52,
     fontSize: 22, bold: true, color: C_TEXT_MAIN,
     fontFace: FONT_FAMILY, margin: 0
   });
 
-  // Subtitle (13pt, high contrast)
+  // Subtitle (Editable Text)
   slide.addText(subtitle, {
     x: 0.6, y: 1.35, w: 10.4, h: 0.38,
     fontSize: 13, color: C_TEXT_MUTED,
     fontFace: FONT_FAMILY, margin: 0
   });
 
-  // Logo BPS on top right
-  if (fs.existsSync(LOGO_BPS)) {
+  // Logo BPS on top right (Embedded Base64)
+  if (LOGO_BPS) {
     slide.addImage({
-      path: LOGO_BPS,
+      data: LOGO_BPS,
       x: 11.1, y: 0.42, w: 1.6, h: 0.54
     });
   }
@@ -88,11 +92,11 @@ function buildSlide1(pres) {
     line: { color: '475569', width: 2 }
   });
 
-  if (fs.existsSync(LOGO_SELAYAR)) {
-    s1.addImage({ path: LOGO_SELAYAR, x: 1.3, y: 1.25, w: 0.95, h: 0.95 });
+  if (LOGO_SELAYAR) {
+    s1.addImage({ data: LOGO_SELAYAR, x: 1.3, y: 1.25, w: 0.95, h: 0.95 });
   }
-  if (fs.existsSync(LOGO_BPS)) {
-    s1.addImage({ path: LOGO_BPS, x: 2.5, y: 1.45, w: 1.9, h: 0.64 });
+  if (LOGO_BPS) {
+    s1.addImage({ data: LOGO_BPS, x: 2.5, y: 1.45, w: 1.9, h: 0.64 });
   }
 
   s1.addShape('roundRect', {
@@ -137,7 +141,7 @@ function buildSlide1(pres) {
 }
 
 // ==========================================
-// SLIDE 2: OVERVIEW 2026
+// SLIDE 2: OVERVIEW 2026 (NATIVE LINE CHART)
 // ==========================================
 function buildSlide2(pres) {
   const s2 = pres.addSlide();
@@ -145,19 +149,34 @@ function buildSlide2(pres) {
   addHeader(s2, 'Tinjauan Tahunan 2026', 'Dinamika IPH Kabupaten Kepulauan Selayar Sepanjang 2026', 'Tren Harga: Fluktuasi Ekstrem Saat HBKN April Diikuti Deflasi Panjang dan Rebound di Q3');
   addFooter(s2, 2);
 
-  s2.addShape('roundRect', {
-    x: 0.6, y: 1.85, w: 7.2, h: 5.05,
-    rectRadius: 0.12,
-    fill: { color: C_CARD },
-    line: { color: C_BORDER, width: 1.2 }
-  });
+  // Native Line Chart (Editable)
+  const lineData = [
+    {
+      name: 'IPH (%)',
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt'],
+      values: [-0.22, -1.48, 0.82, 1.62, -0.50, -0.58, -1.75, -0.51, 1.05, 0.84]
+    }
+  ];
 
-  if (fs.existsSync(CHART_SLIDE2)) {
-    s2.addImage({
-      path: CHART_SLIDE2,
-      x: 0.75, y: 1.95, w: 6.9, h: 4.85
-    });
-  }
+  s2.addChart(pres.ChartType.line, lineData, {
+    x: 0.6, y: 1.85, w: 7.2, h: 5.05,
+    lineDataSymbol: 'circle',
+    lineDataSymbolSize: 8,
+    lineSize: 3,
+    chartColors: ['0284C7'],
+    showValue: true,
+    dataLabelColor: '0F172A',
+    dataLabelFontSize: 11,
+    dataLabelFormatCode: '+0.00%;-0.00%',
+    valAxisMinVal: -2.5,
+    valAxisMaxVal: 2.5,
+    valGridLine: { style: 'dash', color: 'CBD5E1' },
+    showLegend: false,
+    showTitle: true,
+    title: 'Rata-rata IPH Bulanan Kab. Kepulauan Selayar 2026',
+    titleFontSize: 13,
+    titleColor: '0F172A'
+  });
 
   // Card 1: Puncak HBKN April
   s2.addShape('roundRect', {
@@ -221,7 +240,7 @@ function buildSlide2(pres) {
 }
 
 // ==========================================
-// SLIDE 3: MARET - APRIL 2026 (HBKN)
+// SLIDE 3: MARET - APRIL 2026 (NATIVE COLUMN & BAR CHARTS)
 // ==========================================
 function buildSlide3(pres) {
   const s3 = pres.addSlide();
@@ -229,20 +248,55 @@ function buildSlide3(pres) {
   addHeader(s3, 'Analisis Periode I • HBKN', 'Maret – April 2026: Dinamika Harga Fase Ramadan & Idul Fitri', 'Eskalasi Tajam Protein Hewani & Telur Menjelang Hari Raya Sebelum Terjadi Koreksi Pasca HBKN');
   addFooter(s3, 3);
 
-  s3.addShape('roundRect', {
-    x: 0.6, y: 1.85, w: 6.8, h: 5.05,
-    rectRadius: 0.12,
-    fill: { color: C_CARD },
-    line: { color: C_BORDER, width: 1.2 }
+  // Native Column Chart (Weekly IPH)
+  const colData = [
+    {
+      name: 'IPH Mingguan',
+      labels: ['Mar W1', 'Mar W2', 'Apr W1', 'Apr W2', 'Apr W4', 'Apr W5'],
+      values: [0.37, 1.28, 3.26, -3.29, 3.29, 3.23]
+    }
+  ];
+
+  s3.addChart(pres.ChartType.bar, colData, {
+    x: 0.6, y: 1.85, w: 6.8, h: 2.4,
+    barDir: 'col',
+    chartColors: ['DC2626'],
+    showValue: true,
+    dataLabelColor: '0F172A',
+    dataLabelFontSize: 10,
+    showLegend: false,
+    showTitle: true,
+    title: 'Fluktuasi Mingguan Fase Ramadan & Idul Fitri',
+    titleFontSize: 11,
+    titleColor: '0F172A',
+    valGridLine: { style: 'dash', color: 'CBD5E1' }
   });
 
-  if (fs.existsSync(CHART_SLIDE3)) {
-    s3.addImage({
-      path: CHART_SLIDE3,
-      x: 0.75, y: 1.95, w: 6.5, h: 4.85
-    });
-  }
+  // Native Horizontal Bar Chart (Andil Komoditas)
+  const barData = [
+    {
+      name: 'Andil Inflasi',
+      labels: ['Daging Ayam', 'Telur Ayam', 'Daging Sapi'],
+      values: [0.92, 1.35, 2.17]
+    }
+  ];
 
+  s3.addChart(pres.ChartType.bar, barData, {
+    x: 0.6, y: 4.4, w: 6.8, h: 2.5,
+    barDir: 'bar',
+    chartColors: ['DC2626'],
+    showValue: true,
+    dataLabelColor: '991B1B',
+    dataLabelFontSize: 10,
+    showLegend: false,
+    showTitle: true,
+    title: 'Andil Maksimal Komoditas Pemicu HBKN (% Max)',
+    titleFontSize: 11,
+    titleColor: '0F172A',
+    valGridLine: { style: 'dash', color: 'CBD5E1' }
+  });
+
+  // Right Side Cards
   s3.addShape('roundRect', {
     x: 7.6, y: 1.85, w: 5.133, h: 1.55,
     rectRadius: 0.1,
@@ -297,7 +351,7 @@ function buildSlide3(pres) {
 }
 
 // ==========================================
-// SLIDE 4: MEI - JULI 2026 (DEFLASI)
+// SLIDE 4: MEI - JULI 2026 (NATIVE DEFLATION CHARTS)
 // ==========================================
 function buildSlide4(pres) {
   const s4 = pres.addSlide();
@@ -305,20 +359,55 @@ function buildSlide4(pres) {
   addHeader(s4, 'Analisis Periode II • Panen Raya', 'Mei – Juli 2026: Tren Deflasi Konsisten Pasca Panen Raya', 'IPH Bergerak Negatif Hingga Menyentuh -2.02% Didorong Melimpahnya Pasokan Sayuran & Bawang');
   addFooter(s4, 4);
 
-  s4.addShape('roundRect', {
-    x: 0.6, y: 1.85, w: 6.8, h: 5.05,
-    rectRadius: 0.12,
-    fill: { color: C_CARD },
-    line: { color: C_BORDER, width: 1.2 }
+  // Native Column Chart (July Weekly Deflation)
+  const colData = [
+    {
+      name: 'IPH Mingguan',
+      labels: ['Jul W1', 'Jul W2', 'Jul W3', 'Jul W4', 'Jul W5'],
+      values: [-1.31, -1.62, -1.82, -1.97, -2.02]
+    }
+  ];
+
+  s4.addChart(pres.ChartType.bar, colData, {
+    x: 0.6, y: 1.85, w: 6.8, h: 2.4,
+    barDir: 'col',
+    chartColors: ['16A34A'],
+    showValue: true,
+    dataLabelColor: '14532D',
+    dataLabelFontSize: 10,
+    showLegend: false,
+    showTitle: true,
+    title: 'Trajektori Deflasi Mingguan Juli 2026',
+    titleFontSize: 11,
+    titleColor: '0F172A',
+    valGridLine: { style: 'dash', color: 'CBD5E1' }
   });
 
-  if (fs.existsSync(CHART_SLIDE4)) {
-    s4.addImage({
-      path: CHART_SLIDE4,
-      x: 0.75, y: 1.95, w: 6.5, h: 4.85
-    });
-  }
+  // Native Bar Chart (Deflation Drivers)
+  const barData = [
+    {
+      name: 'Andil Deflasi',
+      labels: ['Bawang Merah', 'Daging Ayam', 'Cabai Rawit'],
+      values: [-0.42, -0.61, -0.64]
+    }
+  ];
 
+  s4.addChart(pres.ChartType.bar, barData, {
+    x: 0.6, y: 4.4, w: 6.8, h: 2.5,
+    barDir: 'bar',
+    chartColors: ['15803D'],
+    showValue: true,
+    dataLabelColor: '14532D',
+    dataLabelFontSize: 10,
+    showLegend: false,
+    showTitle: true,
+    title: 'Komoditas Pendorong Deflasi Terbesar (%)',
+    titleFontSize: 11,
+    titleColor: '0F172A',
+    valGridLine: { style: 'dash', color: 'CBD5E1' }
+  });
+
+  // Right Side Cards
   s4.addShape('roundRect', {
     x: 7.6, y: 1.85, w: 5.133, h: 1.55,
     rectRadius: 0.1,
@@ -373,7 +462,7 @@ function buildSlide4(pres) {
 }
 
 // ==========================================
-// SLIDE 5: SEP - OKT 2026 (REBOUND)
+// SLIDE 5: SEP - OKT 2026 (NATIVE REBOUND CHARTS)
 // ==========================================
 function buildSlide5(pres) {
   const s5 = pres.addSlide();
@@ -381,20 +470,57 @@ function buildSlide5(pres) {
   addHeader(s5, 'Analisis Periode III • Musim Peralihan', 'September – Oktober 2026: Rebound Inflasi Komoditas Pangan', 'IPH Kembali Merangkak Positif Dipicu Lonjakan Cabai Rawit & Kenaikan Bertahap Harga Beras');
   addFooter(s5, 5);
 
-  s5.addShape('roundRect', {
-    x: 0.6, y: 1.85, w: 6.8, h: 5.05,
-    rectRadius: 0.12,
-    fill: { color: C_CARD },
-    line: { color: C_BORDER, width: 1.2 }
+  // Native Line Chart (Weekly Rebound)
+  const lineData = [
+    {
+      name: 'IPH Mingguan',
+      labels: ['Sep W1', 'Sep W2', 'Sep W3', 'Sep W4', 'Okt W1'],
+      values: [0.39, 0.95, 1.29, 1.57, 0.84]
+    }
+  ];
+
+  s5.addChart(pres.ChartType.line, lineData, {
+    x: 0.6, y: 1.85, w: 6.8, h: 2.4,
+    lineDataSymbol: 'circle',
+    lineDataSymbolSize: 8,
+    lineSize: 3,
+    chartColors: ['D97706'],
+    showValue: true,
+    dataLabelColor: 'B45309',
+    dataLabelFontSize: 10,
+    showLegend: false,
+    showTitle: true,
+    title: 'Rebound IPH Mingguan September - Oktober 2026',
+    titleFontSize: 11,
+    titleColor: '0F172A',
+    valGridLine: { style: 'dash', color: 'CBD5E1' }
   });
 
-  if (fs.existsSync(CHART_SLIDE5)) {
-    s5.addImage({
-      path: CHART_SLIDE5,
-      x: 0.75, y: 1.95, w: 6.5, h: 4.85
-    });
-  }
+  // Native Horizontal Bar Chart (Drivers)
+  const barData = [
+    {
+      name: 'Andil Inflasi',
+      labels: ['Beras', 'Cabai Merah', 'Cabai Rawit'],
+      values: [0.53, 0.62, 1.13]
+    }
+  ];
 
+  s5.addChart(pres.ChartType.bar, barData, {
+    x: 0.6, y: 4.4, w: 6.8, h: 2.5,
+    barDir: 'bar',
+    chartColors: ['EA580C'],
+    showValue: true,
+    dataLabelColor: '9A3412',
+    dataLabelFontSize: 10,
+    showLegend: false,
+    showTitle: true,
+    title: 'Komoditas Pendorong Kenaikan Akhir Q3 (%)',
+    titleFontSize: 11,
+    titleColor: '0F172A',
+    valGridLine: { style: 'dash', color: 'CBD5E1' }
+  });
+
+  // Right Side Cards
   s5.addShape('roundRect', {
     x: 7.6, y: 1.85, w: 5.133, h: 1.55,
     rectRadius: 0.1,
@@ -449,7 +575,7 @@ function buildSlide5(pres) {
 }
 
 // ==========================================
-// SLIDE 6: PROFIL KOMODITAS BERGEJOLAK 2026
+// SLIDE 6: PROFIL KOMODITAS BERGEJOLAK (NATIVE BAR CHART)
 // ==========================================
 function buildSlide6(pres) {
   const s6 = pres.addSlide();
@@ -457,20 +583,32 @@ function buildSlide6(pres) {
   addHeader(s6, 'Analisis Komoditas 2026', 'Profil Komoditas Bergejolak Kabupaten Kepulauan Selayar', 'Cabai Rawit Memimpin Frekuensi Fluktuasi (15x), Disusul Telur Ayam Ras, Beras, dan Cabai Merah');
   addFooter(s6, 6);
 
-  s6.addShape('roundRect', {
+  // Native Horizontal Bar Chart (Editable)
+  const barData = [
+    {
+      name: 'Frekuensi Kejadian',
+      labels: ['Daging Ayam', 'Cabai Merah', 'Beras', 'Telur Ayam', 'Cabai Rawit'],
+      values: [3, 4, 4, 5, 15]
+    }
+  ];
+
+  s6.addChart(pres.ChartType.bar, barData, {
     x: 0.6, y: 1.85, w: 6.8, h: 5.05,
-    rectRadius: 0.12,
-    fill: { color: C_CARD },
-    line: { color: C_BORDER, width: 1.2 }
+    barDir: 'bar',
+    chartColors: ['0284C7'],
+    showValue: true,
+    dataLabelColor: '0369A1',
+    dataLabelFontSize: 11,
+    valAxisMaxVal: 18,
+    showLegend: false,
+    showTitle: true,
+    title: 'Frekuensi Komoditas Pemicu Gejolak Utama (2026)',
+    titleFontSize: 13,
+    titleColor: '0F172A',
+    valGridLine: { style: 'dash', color: 'CBD5E1' }
   });
 
-  if (fs.existsSync(CHART_SLIDE6)) {
-    s6.addImage({
-      path: CHART_SLIDE6,
-      x: 0.75, y: 1.95, w: 6.5, h: 4.85
-    });
-  }
-
+  // Right Side Cards
   s6.addShape('roundRect', {
     x: 7.6, y: 1.85, w: 5.133, h: 1.55,
     rectRadius: 0.1,
@@ -518,7 +656,7 @@ function buildSlide6(pres) {
 }
 
 // ==========================================
-// SLIDE 7: RENCANA KEBIJAKAN 4K 2026
+// SLIDE 7: RENCANA KEBIJAKAN 4K 2026 (EDITABLE CARDS)
 // ==========================================
 function buildSlide7(pres) {
   const s7 = pres.addSlide();
@@ -633,8 +771,8 @@ function buildSlide8(pres) {
     line: { color: '475569', width: 2 }
   });
 
-  if (fs.existsSync(LOGO_SELAYAR)) {
-    s8.addImage({ path: LOGO_SELAYAR, x: 1.3, y: 1.3, w: 1.1, h: 1.1 });
+  if (LOGO_SELAYAR) {
+    s8.addImage({ data: LOGO_SELAYAR, x: 1.3, y: 1.3, w: 1.1, h: 1.1 });
   }
 
   s8.addText('Terima Kasih', {
@@ -674,11 +812,11 @@ function buildSlide8(pres) {
     line: { color: 'F59E0B', width: 2 }
   });
 
-  if (fs.existsSync(LOGO_BPS)) {
-    s8.addImage({ path: LOGO_BPS, x: 7.6, y: 1.3, w: 1.9, h: 0.64 });
+  if (LOGO_BPS) {
+    s8.addImage({ data: LOGO_BPS, x: 7.6, y: 1.3, w: 1.9, h: 0.64 });
   }
-  if (fs.existsSync(LOGO_SE2026)) {
-    s8.addImage({ path: LOGO_SE2026, x: 10.9, y: 1.15, w: 1.15, h: 1.15 });
+  if (LOGO_SE2026) {
+    s8.addImage({ data: LOGO_SE2026, x: 10.9, y: 1.15, w: 1.15, h: 1.15 });
   }
 
   s8.addShape('roundRect', {
@@ -723,21 +861,7 @@ async function generateAll() {
 
   const outPath = path.resolve('Materi IPH.pptx');
   await pres.writeFile({ fileName: outPath });
-  console.log('Successfully generated senior-friendly 2026 PPTX: ' + outPath);
-
-  // Generate single slides for thumbnail inspection
-  const thumbDir = '/tmp/slide_cards_senior';
-  if (!fs.existsSync(thumbDir)) fs.mkdirSync(thumbDir, { recursive: true });
-
-  for (let i = 0; i < builders.length; i++) {
-    const singlePres = new pptxgen();
-    singlePres.layout = 'LAYOUT_WIDE';
-    builders[i](singlePres);
-    const p = path.join(thumbDir, `slide_${i + 1}.pptx`);
-    await singlePres.writeFile({ fileName: p });
-    execSync(`qlmanage -t -s 1400 "${p}" -o "${thumbDir}" 2>&1`);
-  }
-  console.log('Generated senior-friendly thumbnails in: ' + thumbDir);
+  console.log('Successfully generated 100% native editable PPTX: ' + outPath);
 }
 
 generateAll();
