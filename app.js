@@ -247,10 +247,10 @@
     kabSelect.innerHTML = '';
 
     const optgroupIPH = document.createElement('optgroup');
-    optgroupIPH.label = 'Daerah Pemantauan IPH BPS (16 Kab)';
+    optgroupIPH.label = 'Kelompok IPH (16 Daerah)';
 
     const optgroupIHK = document.createElement('optgroup');
-    optgroupIHK.label = 'Kota / Kabupaten IHK (Inflasi Bulanan)';
+    optgroupIHK.label = 'Kelompok IHK (8 Daerah)';
 
     KAB_LIST.forEach(k => {
       const opt = document.createElement('option');
@@ -271,13 +271,13 @@
 
   function populateHeaderQuickSelect() {
     if (!headerQuickKabSelect) return;
-    headerQuickKabSelect.innerHTML = '<option value=\"\" disabled selected>Pilih Kab/Kota...</option>';
+    headerQuickKabSelect.innerHTML = '<option value="" disabled selected>Pilih Kab/Kota...</option>';
 
     const optgroupIPH = document.createElement('optgroup');
-    optgroupIPH.label = '16 Daerah IPH Mingguan';
+    optgroupIPH.label = 'Kelompok IPH (16 Daerah)';
 
     const optgroupIHK = document.createElement('optgroup');
-    optgroupIHK.label = 'Kota / Kab IHK Bulanan';
+    optgroupIHK.label = 'Kelompok IHK (8 Daerah)';
 
     KAB_LIST.forEach(k => {
       const opt = document.createElement('option');
