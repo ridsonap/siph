@@ -26,6 +26,8 @@
   const viewSulsel = document.getElementById('viewSulsel');
   const viewKabupaten = document.getElementById('viewKabupaten');
   const headerQuickKabSelect = document.getElementById('headerQuickKabSelect');
+  const headerQuickKabContainer = document.getElementById('headerQuickKabContainer');
+  const headerPeriodWrapper = document.getElementById('headerPeriodWrapper');
 
   // DOM Elements - Sulsel View
   const periodSelect = document.getElementById('periodSelect');
@@ -269,7 +271,7 @@
 
   function populateHeaderQuickSelect() {
     if (!headerQuickKabSelect) return;
-    headerQuickKabSelect.innerHTML = '<option value=\"\" disabled selected>🔍 Cari / Pilih Kab/Kot...</option>';
+    headerQuickKabSelect.innerHTML = '<option value=\"\" disabled selected>Pilih Kab/Kota...</option>';
 
     const optgroupIPH = document.createElement('optgroup');
     optgroupIPH.label = '16 Daerah IPH Mingguan';
@@ -290,24 +292,7 @@
   }
 
   function renderQuickChips() {
-    if (!kabQuickChipsContainer) return;
-    kabQuickChipsContainer.innerHTML = '';
-
-    KAB_LIST.forEach(k => {
-      const chip = document.createElement('button');
-      const isSelected = k.code === selectedKabCode;
-      chip.className = `chip-filter text-[11px] font-medium px-2.5 py-1 rounded-lg border transition shrink-0 cursor-pointer ${
-        isSelected
-          ? 'bg-slate-900 text-white border-slate-900 font-bold shadow-sm'
-          : 'bg-white text-slate-700 hover:bg-slate-100 border-slate-200'
-      }`;
-      chip.textContent = k.name.replace('Kab. ', '').replace('Kota ', '');
-      chip.title = `${k.name} (${k.code})${k.isIHK ? ' - Wilayah IHK' : ''}`;
-      chip.addEventListener('click', () => {
-        setKabupaten(k.code);
-      });
-      kabQuickChipsContainer.appendChild(chip);
-    });
+    // Disabled - "pilih cepat daerah" removed as requested
   }
 
   function updateCommodityDropdown(code) {
@@ -343,10 +328,13 @@
   function switchTab(tab) {
     currentTab = tab;
     if (tab === 'sulsel') {
-      tabSulselBtn.className = 'flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-900 text-white shadow-sm cursor-pointer';
-      tabKabupatenBtn.className = 'flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 cursor-pointer';
+      tabSulselBtn.className = 'flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-900 text-white shadow-sm cursor-pointer';
+      tabKabupatenBtn.className = 'flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 cursor-pointer';
       viewSulsel.classList.remove('hidden');
       viewKabupaten.classList.add('hidden');
+      headerPeriodWrapper?.classList.remove('hidden');
+      exportCsvBtnMobile?.classList.remove('hidden');
+      headerQuickKabContainer?.classList.remove('sm:hidden');
       setTimeout(() => {
         mapChart?.resize();
         barChart?.resize();
@@ -354,10 +342,13 @@
         commodityChart?.resize();
       }, 50);
     } else {
-      tabKabupatenBtn.className = 'flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-900 text-white shadow-sm cursor-pointer';
-      tabSulselBtn.className = 'flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 cursor-pointer';
+      tabKabupatenBtn.className = 'flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-900 text-white shadow-sm cursor-pointer';
+      tabSulselBtn.className = 'flex items-center gap-1.5 px-3.5 sm:px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900 cursor-pointer';
       viewSulsel.classList.add('hidden');
       viewKabupaten.classList.remove('hidden');
+      headerPeriodWrapper?.classList.add('hidden');
+      exportCsvBtnMobile?.classList.add('hidden');
+      headerQuickKabContainer?.classList.add('sm:hidden');
       renderKabupatenView();
       setTimeout(() => {
         kabTimeSeriesChart?.resize();
