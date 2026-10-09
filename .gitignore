@@ -1,0 +1,6 @@
+.DS_Store
+__pycache__/
+*.pyc
+.vscode/
+dashboard_preview.png
+.playwright-mcp/
