@@ -27,6 +27,19 @@ body {
   background: #94a3b8;
 }
 
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Map chart styling */
 #mapChartContainer {
   background: radial-gradient(circle at 50% 50%, #f8fafc 0%, #f1f5f9 100%);

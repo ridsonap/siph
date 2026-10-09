@@ -12,153 +12,161 @@
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col selection:bg-rose-500 selection:text-white">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col selection:bg-rose-500 selection:text-white overflow-x-hidden">
 
   <!-- TOP NAVBAR -->
-  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-          SP
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-base font-bold tracking-tight text-slate-900">SIPH Sulsel</h1>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold border border-rose-200">Live 2023–2026</span>
+  <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 sm:py-0 sm:h-16 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 sm:gap-4">
+      <div class="flex items-center justify-between gap-3 w-full sm:w-auto">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm sm:text-lg shadow-sm">
+            SP
           </div>
-          <p class="text-xs text-slate-500 hidden sm:block">Sistem Informasi Perkembangan Harga Kab/Kota Sulawesi Selatan</p>
+          <div>
+            <div class="flex items-center gap-1.5 sm:gap-2">
+              <h1 class="text-sm sm:text-base font-bold tracking-tight text-slate-900">SIPH Sulsel</h1>
+              <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-semibold border border-rose-200">2023–2026</span>
+            </div>
+            <p class="text-[11px] sm:text-xs text-slate-500 hidden md:block">Sistem Informasi Perkembangan Harga Kab/Kota Sulawesi Selatan</p>
+          </div>
         </div>
+
+        <!-- Export CSV Button (Mobile View) -->
+        <button id="exportCsvBtnMobile" class="sm:hidden text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 shadow-sm shrink-0">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+          <span>CSV</span>
+        </button>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
         <!-- Periode Selector -->
-        <div class="flex items-center gap-2">
-          <label for="periodSelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:block">Periode:</label>
-          <select id="periodSelect" class="text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer">
+        <div class="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
+          <label for="periodSelect" class="text-xs font-semibold text-slate-500 uppercase tracking-wider hidden md:block shrink-0">Periode:</label>
+          <select id="periodSelect" class="w-full sm:w-auto text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-slate-900 focus:outline-none transition cursor-pointer truncate">
             <!-- Populated via JS -->
           </select>
         </div>
 
-        <!-- Export Action -->
-        <button id="exportCsvBtn" class="text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+        <!-- Export Action (Desktop View) -->
+        <button id="exportCsvBtn" class="hidden sm:flex text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg transition items-center gap-1.5 shadow-sm shrink-0">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-          <span class="hidden sm:inline">Unduh</span> CSV
+          <span>Unduh CSV</span>
         </button>
       </div>
     </div>
   </header>
 
   <!-- MAIN CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 space-y-6">
+  <main class="w-full max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 flex-1 space-y-4 sm:space-y-6 min-w-0">
 
     <!-- EXECUTIVE KPI ROW -->
     <section>
-      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
         <!-- Card 1: Rata-rata Sulsel -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+        <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
             <span>Rata-Rata IPH</span>
-            <span id="kpiAvgBadge" class="text-[10px] px-1.5 py-0.5 rounded font-bold"></span>
+            <span id="kpiAvgBadge" class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded font-bold"></span>
           </div>
-          <div class="my-2">
-            <div id="kpiAvgVal" class="text-2xl sm:text-3xl font-extrabold tracking-tight font-mono text-slate-900">0.00%</div>
+          <div class="my-1.5 sm:my-2">
+            <div id="kpiAvgVal" class="text-xl sm:text-3xl font-extrabold tracking-tight font-mono text-slate-900">0.00%</div>
           </div>
-          <div id="kpiPeriodLabel" class="text-xs text-slate-400 truncate">Minggu Berjalan</div>
+          <div id="kpiPeriodLabel" class="text-[10px] sm:text-xs text-slate-400 truncate">Minggu Berjalan</div>
         </div>
 
         <!-- Card 2: Sebaran Status -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Sebaran Wilayah</div>
-          <div class="my-2 flex items-baseline gap-2">
+        <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Sebaran Wilayah</div>
+          <div class="my-1.5 sm:my-2 flex items-baseline gap-1.5 sm:gap-2">
             <div class="flex items-center gap-1">
-              <span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
-              <span id="kpiNaikCount" class="text-lg font-bold text-slate-900">0</span>
-              <span class="text-[11px] text-slate-500">Naik</span>
+              <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-rose-500 inline-block"></span>
+              <span id="kpiNaikCount" class="text-base sm:text-lg font-bold text-slate-900">0</span>
+              <span class="text-[10px] sm:text-[11px] text-slate-500">Naik</span>
             </div>
-            <div class="text-slate-300">/</div>
+            <div class="text-slate-300 text-xs">/</div>
             <div class="flex items-center gap-1">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-              <span id="kpiTurunCount" class="text-lg font-bold text-slate-900">0</span>
-              <span class="text-[11px] text-slate-500">Turun</span>
+              <span class="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+              <span id="kpiTurunCount" class="text-base sm:text-lg font-bold text-slate-900">0</span>
+              <span class="text-[10px] sm:text-[11px] text-slate-500">Turun</span>
             </div>
           </div>
-          <div id="kpiStabilCount" class="text-xs text-slate-400">0 Wilayah Stabil</div>
+          <div id="kpiStabilCount" class="text-[10px] sm:text-xs text-slate-400">0 Wilayah Stabil</div>
         </div>
 
         <!-- Card 3: Lonjakan Tertinggi -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="text-xs font-semibold text-rose-600 uppercase tracking-wider flex items-center gap-1">
+        <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="text-[10px] sm:text-xs font-semibold text-rose-600 uppercase tracking-wider flex items-center gap-1 truncate">
             <span>▲ Lonjakan Tertinggi</span>
           </div>
-          <div class="my-2">
-            <div id="kpiGainerVal" class="text-xl sm:text-2xl font-bold font-mono text-rose-600">+0.00%</div>
-            <div id="kpiGainerName" class="text-xs font-semibold text-slate-700 truncate mt-0.5">-</div>
+          <div class="my-1.5 sm:my-2">
+            <div id="kpiGainerVal" class="text-lg sm:text-2xl font-bold font-mono text-rose-600">+0.00%</div>
+            <div id="kpiGainerName" class="text-[11px] sm:text-xs font-semibold text-slate-700 truncate mt-0.5">-</div>
           </div>
-          <div class="text-[11px] text-slate-400">Tekanan harga tertinggi</div>
+          <div class="text-[10px] sm:text-[11px] text-slate-400">Tekanan tertinggi</div>
         </div>
 
         <!-- Card 4: Penurunan Terdalam / Kenaikan Terendah -->
-        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="text-xs font-semibold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+        <div class="bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="text-[10px] sm:text-xs font-semibold text-emerald-600 uppercase tracking-wider flex items-center gap-1 truncate">
             <span id="kpiLoserTitle">▼ Penurunan Terdalam</span>
           </div>
-          <div class="my-2">
-            <div id="kpiLoserVal" class="text-xl sm:text-2xl font-bold font-mono text-emerald-600">-0.00%</div>
-            <div id="kpiLoserName" class="text-xs font-semibold text-slate-700 truncate mt-0.5">-</div>
+          <div class="my-1.5 sm:my-2">
+            <div id="kpiLoserVal" class="text-lg sm:text-2xl font-bold font-mono text-emerald-600">-0.00%</div>
+            <div id="kpiLoserName" class="text-[11px] sm:text-xs font-semibold text-slate-700 truncate mt-0.5">-</div>
           </div>
-          <div id="kpiLoserSubtext" class="text-[11px] text-slate-400">Deflasi mingguan terbesar</div>
+          <div id="kpiLoserSubtext" class="text-[10px] sm:text-[11px] text-slate-400 truncate">Deflasi terbesar</div>
         </div>
 
         <!-- Card 5: Komoditas Kunci -->
-        <div class="col-span-2 sm:col-span-1 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div class="text-xs font-semibold text-amber-600 uppercase tracking-wider">Komoditas Fluktuatif</div>
-          <div class="my-2">
-            <div id="kpiThreatName" class="text-lg sm:text-xl font-bold text-slate-900 line-clamp-1">-</div>
+        <div class="col-span-2 md:col-span-4 lg:col-span-1 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div class="text-[10px] sm:text-xs font-semibold text-amber-600 uppercase tracking-wider">Komoditas Fluktuatif</div>
+          <div class="my-1.5 sm:my-2">
+            <div id="kpiThreatName" class="text-base sm:text-xl font-bold text-slate-900 line-clamp-1">-</div>
           </div>
-          <div class="text-[11px] text-slate-400">Pemicu fluktuasi terbanyak</div>
+          <div class="text-[10px] sm:text-[11px] text-slate-400">Pemicu fluktuasi terbanyak</div>
         </div>
       </div>
     </section>
 
     <!-- NARRATIVE INSIGHT BANNER -->
     <section>
-      <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-xl sm:rounded-2xl shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
         <div class="space-y-1">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-rose-400 animate-pulse"></span>
-            <span class="text-xs font-mono tracking-widest text-slate-400 uppercase">Ringkasan Analitik Kebijakan</span>
+            <span class="text-[10px] sm:text-xs font-mono tracking-widest text-slate-400 uppercase">Ringkasan Analitik Kebijakan</span>
           </div>
-          <p id="narrativeInsightText" class="text-sm sm:text-base text-slate-200 leading-relaxed">
+          <p id="narrativeInsightText" class="text-xs sm:text-sm md:text-base text-slate-200 leading-relaxed">
             Memuat ringkasan situasi perkembangan harga pangan di Sulawesi Selatan...
           </p>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button id="filterAllBtn" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 transition">Lihat Seluruh Periode</button>
+        <div class="w-full md:w-auto shrink-0">
+          <button id="filterAllBtn" class="w-full md:w-auto px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 transition text-center">Lihat Tren Historis</button>
         </div>
       </div>
     </section>
 
     <!-- SPATIAL & REGIONAL RANKING ROW -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
       
       <!-- Interactive Sulsel Choropleth Map (7 cols) -->
-      <div class="lg:col-span-7 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+      <div class="lg:col-span-7 bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <h2 class="text-base font-bold text-slate-900">Peta Spasial IPH Sulawesi Selatan</h2>
-            <p class="text-xs text-slate-500">Arahkan kursor atau sentuh kabupaten/kota untuk melihat andil komoditas</p>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900">Peta Spasial IPH Sulawesi Selatan</h2>
+            <p class="text-[11px] sm:text-xs text-slate-500">Sentuh kabupaten/kota untuk melihat andil komoditas</p>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
-              <span class="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span> Deflasi
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-medium text-slate-500">
+              <span class="w-2 h-2 rounded bg-emerald-500 inline-block"></span> Deflasi
             </span>
-            <span class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500">
-              <span class="w-2.5 h-2.5 rounded bg-rose-500 inline-block"></span> Inflasi
+            <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-medium text-slate-500">
+              <span class="w-2 h-2 rounded bg-rose-500 inline-block"></span> Inflasi
             </span>
           </div>
         </div>
 
-        <div id="mapChartContainer" class="w-full h-[430px] rounded-xl bg-slate-50 border border-slate-100 relative">
+        <div id="mapChartContainer" class="w-full h-[380px] sm:h-[440px] rounded-xl bg-slate-50 border border-slate-100 relative">
           <!-- Loading skeleton -->
           <div id="mapLoading" class="absolute inset-0 flex items-center justify-center text-xs text-slate-400 font-mono">
             Memuat Peta Spasial Sulsel...
@@ -167,71 +175,71 @@
       </div>
 
       <!-- Regional Bar & Breakdown (5 cols) -->
-      <div class="lg:col-span-5 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+      <div class="lg:col-span-5 bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <h2 class="text-base font-bold text-slate-900">Peringkat IPH Wilayah</h2>
-            <p class="text-xs text-slate-500">Urutan kenaikan/penurunan harga pada minggu terpilih</p>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900">Peringkat IPH Wilayah</h2>
+            <p class="text-[11px] sm:text-xs text-slate-500">Urutan kenaikan/penurunan harga pada minggu terpilih</p>
           </div>
-          <span id="rankingPeriodBadge" class="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded"></span>
+          <span id="rankingPeriodBadge" class="text-[11px] sm:text-xs font-mono bg-slate-100 text-slate-700 px-2 py-0.5 rounded"></span>
         </div>
 
-        <div id="barRankingChart" class="w-full h-[430px]"></div>
+        <div id="barRankingChart" class="w-full h-[360px] sm:h-[430px]"></div>
       </div>
     </section>
 
     <!-- HISTORICAL TIME-SERIES EXPLORER -->
-    <section class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+    <section class="bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-3 sm:mb-4">
         <div>
           <div class="flex items-center gap-2">
-            <h2 class="text-base font-bold text-slate-900">Eksplorasi Tren Historis (2023–2026)</h2>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono">175 Rilis</span>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900">Eksplorasi Tren Historis (2023–2026)</h2>
+            <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-mono">175 Rilis</span>
           </div>
-          <p class="text-xs text-slate-500">Dinamika IPH mingguan lintas kabupaten/kota dengan slider rentang waktu</p>
+          <p class="text-[11px] sm:text-xs text-slate-500">Dinamika IPH mingguan lintas kabupaten/kota dengan slider rentang waktu</p>
         </div>
 
-        <!-- Regency Filter Tags -->
-        <div class="flex flex-wrap items-center gap-1.5" id="kabFiltersContainer">
+        <!-- Regency Filter Tags (Horizontally Scrollable on Mobile) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1 max-w-full" id="kabFiltersContainer">
           <!-- Populated by JS -->
         </div>
       </div>
 
-      <div id="timeSeriesChart" class="w-full h-[360px]"></div>
+      <div id="timeSeriesChart" class="w-full h-[280px] sm:h-[360px]"></div>
     </section>
 
     <!-- COMMODITY THREAT MATRIX -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
       
       <!-- Top Volatile Commodities (7 cols) -->
-      <div class="lg:col-span-7 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div class="lg:col-span-7 bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm">
         <div class="mb-3">
-          <h2 class="text-base font-bold text-slate-900">Frekuensi Komoditas Pemicu Gejolak (2023–2026)</h2>
-          <p class="text-xs text-slate-500">Komoditas yang paling sering mencatatkan fluktuasi tertinggi di kabupaten/kota</p>
+          <h2 class="text-sm sm:text-base font-bold text-slate-900">Frekuensi Komoditas Pemicu Gejolak (2023–2026)</h2>
+          <p class="text-[11px] sm:text-xs text-slate-500">Komoditas yang paling sering mencatatkan fluktuasi tertinggi di kabupaten/kota</p>
         </div>
-        <div id="commodityBarChart" class="w-full h-[320px]"></div>
+        <div id="commodityBarChart" class="w-full h-[270px] sm:h-[320px]"></div>
       </div>
 
       <!-- Historical Insight & Strategic Guidance (5 cols) -->
-      <div class="lg:col-span-5 bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+      <div class="lg:col-span-5 bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div>
-          <h2 class="text-base font-bold text-slate-900 mb-2">Temuan Pola Pangan Sulsel</h2>
-          <div class="space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed">
-            <div class="p-3 bg-rose-50 border border-rose-100 rounded-xl">
+          <h2 class="text-sm sm:text-base font-bold text-slate-900 mb-2">Temuan Pola Pangan Sulsel</h2>
+          <div class="space-y-2.5 sm:space-y-3 text-xs sm:text-sm text-slate-600 leading-relaxed">
+            <div class="p-2.5 sm:p-3 bg-rose-50 border border-rose-100 rounded-xl">
               <span class="font-bold text-rose-900 block mb-0.5">🔥 Duo Cabai (Rawit & Merah)</span>
               Menyumbang lebih dari 65% total lonjakan IPH mingguan di Sulsel. Volatilitas harga melonjak signifikan saat peralihan musim dan menjelang HBKN (Idul Fitri & Nataru).
             </div>
-            <div class="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+            <div class="p-2.5 sm:p-3 bg-amber-50 border border-amber-100 rounded-xl">
               <span class="font-bold text-amber-900 block mb-0.5">🧅 Bawang Merah & Bawang Putih</span>
               Komoditas kedua paling sering bergejolak, terutama dipengaruhi oleh pasokan antar-daerah dari sentra Enrekang dan luar provinsi.
             </div>
-            <div class="p-3 bg-sky-50 border border-sky-100 rounded-xl">
+            <div class="p-2.5 sm:p-3 bg-sky-50 border border-sky-100 rounded-xl">
               <span class="font-bold text-sky-900 block mb-0.5">🌾 Beras & Daging Unggas</span>
               Mempunyai andil bobot konsumsi terbesar pada kabupaten agraris seperti Sidrap, Pinrang, Luwu, dan Gowa.
             </div>
           </div>
         </div>
-        <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 mt-3 sm:mt-0">
           <span>Formula: IPH = (Harga M_berjalan - Harga M_lalu) / Harga M_lalu</span>
           <span>BPS Sulsel</span>
         </div>
@@ -239,23 +247,23 @@
     </section>
 
     <!-- DETAILED DATA TABLE -->
-    <section class="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <section class="bg-white p-3.5 sm:p-6 rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
         <div>
-          <h2 class="text-base font-bold text-slate-900">Rincian Data IPH Kabupaten/Kota</h2>
-          <p class="text-xs text-slate-500">Tabel lengkap rincian andil komoditas dan nilai koefisien variasi (CV)</p>
+          <h2 class="text-sm sm:text-base font-bold text-slate-900">Rincian Data IPH Kabupaten/Kota</h2>
+          <p class="text-[11px] sm:text-xs text-slate-500">Tabel andil komoditas dan nilai koefisien variasi (CV)</p>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
           <!-- Search Input -->
-          <div class="relative">
-            <input type="text" id="tableSearchInput" placeholder="Cari kabupaten..." class="text-xs bg-slate-100 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 w-44 sm:w-56">
+          <div class="relative flex-1 sm:flex-initial">
+            <input type="text" id="tableSearchInput" placeholder="Cari kabupaten..." class="text-xs bg-slate-100 border border-slate-200 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 w-full sm:w-56">
             <svg class="w-3.5 h-3.5 absolute left-2.5 top-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           </div>
 
           <!-- Status Filter -->
-          <select id="tableStatusFilter" class="text-xs bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer">
-            <option value="ALL">Semua Status</option>
+          <select id="tableStatusFilter" class="text-xs bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer shrink-0">
+            <option value="ALL">Semua</option>
             <option value="Naik">Naik</option>
             <option value="Turun">Turun</option>
             <option value="Stabil">Stabil</option>
@@ -263,18 +271,27 @@
         </div>
       </div>
 
+      <!-- Mobile Scroll Hint -->
+      <div class="sm:hidden flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200">
+        <span class="flex items-center gap-1 font-medium">
+          <svg class="w-3.5 h-3.5 text-slate-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+          Geser tabel ke samping untuk rincian lengkap
+        </span>
+        <span id="tableRowsCountMobile" class="font-mono text-[10px]">16 daerah</span>
+      </div>
+
       <!-- Table Container -->
-      <div class="overflow-x-auto rounded-xl border border-slate-200">
-        <table class="w-full text-left text-xs">
+      <div class="overflow-x-auto rounded-xl border border-slate-200 scroll-touch">
+        <table class="min-w-[700px] w-full text-left text-xs whitespace-nowrap">
           <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
             <tr>
-              <th class="px-4 py-3">Kode</th>
-              <th class="px-4 py-3">Kabupaten / Kota</th>
-              <th class="px-4 py-3 text-right">Nilai IPH</th>
-              <th class="px-4 py-3 text-center">Status</th>
-              <th class="px-4 py-3">Andil Komoditas Utama</th>
-              <th class="px-4 py-3">Fluktuasi Tertinggi</th>
-              <th class="px-4 py-3 text-right">Nilai CV</th>
+              <th class="px-3.5 sm:px-4 py-2.5 sm:py-3">Kode</th>
+              <th class="px-3.5 sm:px-4 py-2.5 sm:py-3">Kabupaten / Kota</th>
+              <th class="px-3.5 sm:px-4 py-2.5 sm:py-3 text-right">Nilai IPH</th>
+              <th class="px-3.5 sm:px-4 py-2.5 sm:py-3 text-center">Status</th>
+              <th class="px-3.5 sm:px-4 py-2.5 sm:py-3">Andil Komoditas Utama</th>
+              <th class="px-3.5 sm:px-4 py-2.5 sm:py-3">Fluktuasi Tertinggi</th>
+              <th class="px-3.5 sm:px-4 py-2.5 sm:py-3 text-right">Nilai CV</th>
             </tr>
           </thead>
           <tbody id="dataTableBody" class="divide-y divide-slate-100 font-normal">
@@ -282,9 +299,9 @@
           </tbody>
         </table>
       </div>
-      <div class="flex items-center justify-between text-xs text-slate-500 pt-2">
-        <span id="tableRowsCount">Menampilkan 0 baris</span>
-        <button id="downloadJsonBtn" class="text-slate-600 hover:text-slate-900 font-medium underline">Unduh Seluruh Data JSON</button>
+      <div class="flex items-center justify-between text-xs text-slate-500 pt-1 sm:pt-2">
+        <span id="tableRowsCount" class="hidden sm:inline">Menampilkan 0 baris</span>
+        <button id="downloadJsonBtn" class="text-slate-600 hover:text-slate-900 font-medium underline text-[11px] sm:text-xs">Unduh Seluruh Data JSON</button>
       </div>
     </section>
 

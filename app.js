@@ -14,6 +14,7 @@
   // DOM Elements
   const periodSelect = document.getElementById('periodSelect');
   const exportCsvBtn = document.getElementById('exportCsvBtn');
+  const exportCsvBtnMobile = document.getElementById('exportCsvBtnMobile');
   const downloadJsonBtn = document.getElementById('downloadJsonBtn');
   const tableSearchInput = document.getElementById('tableSearchInput');
   const tableStatusFilter = document.getElementById('tableStatusFilter');
@@ -37,6 +38,7 @@
   const rankingPeriodBadge = document.getElementById('rankingPeriodBadge');
   const dataTableBody = document.getElementById('dataTableBody');
   const tableRowsCount = document.getElementById('tableRowsCount');
+  const tableRowsCountMobile = document.getElementById('tableRowsCountMobile');
   const kabFiltersContainer = document.getElementById('kabFiltersContainer');
 
   // Load Data
@@ -95,6 +97,7 @@
     tableStatusFilter.addEventListener('change', renderTable);
 
     exportCsvBtn.addEventListener('click', exportCurrentPeriodCsv);
+    exportCsvBtnMobile?.addEventListener('click', exportCurrentPeriodCsv);
     downloadJsonBtn.addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(rawData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -117,6 +120,10 @@
     });
 
     window.addEventListener('resize', () => {
+      renderMapChart();
+      renderBarRanking();
+      renderTimeSeriesChart();
+      renderCommodityChart();
       mapChart?.resize();
       barChart?.resize();
       timeSeriesChart?.resize();
@@ -252,6 +259,7 @@
   // 4. Map Chart
   function renderMapChart() {
     const p = currentPeriod;
+    const isMobile = window.innerWidth < 640;
     const recMap = {};
     p.records.forEach(r => { recMap[r.nama_kab] = r; });
 
@@ -273,7 +281,7 @@
         backgroundColor: 'rgba(15, 23, 42, 0.95)',
         borderColor: '#334155',
         borderWidth: 1,
-        textStyle: { color: '#f8fafc', fontSize: 12 },
+        textStyle: { color: '#f8fafc', fontSize: isMobile ? 11 : 12 },
         formatter: (params) => {
           const rec = params.data?.record;
           if (!rec) {
@@ -285,13 +293,13 @@
             : '<li>• Tidak ada data andil</li>';
 
           return `
-            <div style="font-family:'Plus Jakarta Sans',sans-serif; min-width:180px;">
-              <div style="font-weight:700; font-size:13px; margin-bottom:4px; border-bottom:1px solid #334155; padding-bottom:3px;">
+            <div style="font-family:'Plus Jakarta Sans',sans-serif; min-width:${isMobile ? 160 : 180}px;">
+              <div style="font-weight:700; font-size:${isMobile ? 12 : 13}px; margin-bottom:4px; border-bottom:1px solid #334155; padding-bottom:3px;">
                 ${rec.nama_kab}
               </div>
               <div style="display:flex; justify-content:space-between; margin:4px 0;">
                 <span style="color:#94a3b8">IPH:</span>
-                <strong style="color:${iphColor}; font-family:monospace; font-size:13px;">${rec.iph > 0 ? '+' : ''}${rec.iph}% (${rec.status})</strong>
+                <strong style="color:${iphColor}; font-family:monospace; font-size:${isMobile ? 12 : 13}px;">${rec.iph > 0 ? '+' : ''}${rec.iph}% (${rec.status})</strong>
               </div>
               <div style="margin-top:6px; color:#cbd5e1; font-size:11px;">
                 <div style="color:#94a3b8; font-weight:600; margin-bottom:2px;">Andil Komoditas:</div>
@@ -307,24 +315,26 @@
       visualMap: {
         min: -3,
         max: 3,
-        calculable: true,
+        calculable: false,
         orient: 'horizontal',
         left: 'center',
-        bottom: 10,
+        bottom: 8,
+        itemWidth: isMobile ? 12 : 16,
+        itemHeight: isMobile ? 90 : 130,
         inRange: {
           color: ['#10b981', '#6ee7b7', '#f8fafc', '#fca5a5', '#e11d48']
         },
         text: ['+3% Inflasi', '-3% Deflasi'],
-        textStyle: { color: '#64748b', fontSize: 11 }
+        textStyle: { color: '#64748b', fontSize: isMobile ? 10 : 11 }
       },
       series: [
         {
           name: 'IPH Sulsel',
           type: 'map',
           map: 'sulsel',
-          roam: true,
-          zoom: 1.25,
-          center: [120.2, -4.0],
+          roam: !isMobile, // Disable roam on mobile so vertical page scroll is not trapped
+          zoom: isMobile ? 1.2 : 1.25,
+          center: isMobile ? [120.1, -3.85] : [120.2, -4.0],
           emphasis: {
             label: { show: true, color: '#0f172a', fontWeight: 'bold' },
             itemStyle: { areaColor: '#fde047', borderColor: '#0f172a', borderWidth: 1.5 }
@@ -348,13 +358,20 @@
   // 5. Horizontal Bar Ranking
   function renderBarRanking() {
     const p = currentPeriod;
+    const isMobile = window.innerWidth < 640;
     const sorted = [...p.records].sort((a, b) => a.iph - b.iph);
 
-    const names = sorted.map(r => r.nama_kab.replace('Kab. ', '').replace('Kota ', ''));
+    const names = sorted.map(r => 
+      r.nama_kab
+        .replace('Kab. ', '')
+        .replace('Kota ', '')
+        .replace('Pangkajene Kepulauan', 'Pangkep')
+        .replace('Kepulauan Selayar', 'Selayar')
+    );
     const values = sorted.map(r => r.iph);
 
     const option = {
-      grid: { top: 10, right: 30, bottom: 25, left: 135 },
+      grid: { top: 10, right: isMobile ? 15 : 30, bottom: 25, left: isMobile ? 76 : 120 },
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
@@ -368,14 +385,14 @@
         type: 'value',
         axisLine: { lineStyle: { color: '#cbd5e1' } },
         splitLine: { lineStyle: { color: '#f1f5f9' } },
-        axisLabel: { color: '#64748b', fontSize: 11, formatter: '{value}%' }
+        axisLabel: { color: '#64748b', fontSize: isMobile ? 10 : 11, formatter: '{value}%' }
       },
       yAxis: {
         type: 'category',
         data: names,
         axisLine: { lineStyle: { color: '#cbd5e1' } },
         axisTick: { show: false },
-        axisLabel: { color: '#334155', fontSize: 11, fontWeight: 500 }
+        axisLabel: { color: '#334155', fontSize: isMobile ? 10 : 11, fontWeight: 500 }
       },
       series: [
         {
@@ -387,7 +404,7 @@
               borderRadius: val > 0 ? [0, 4, 4, 0] : [4, 0, 0, 4]
             }
           })),
-          barWidth: 12
+          barWidth: isMobile ? 10 : 12
         }
       ]
     };
@@ -398,6 +415,7 @@
   // 6. Time Series Multi-Line Explorer
   function renderTimeSeriesChart() {
     const periods = rawData.periods;
+    const isMobile = window.innerWidth < 640;
     const labels = periods.map(p => p.period_key);
 
     const seriesList = [];
@@ -409,7 +427,7 @@
         type: 'line',
         smooth: true,
         showSymbol: false,
-        lineStyle: { width: 3, color: '#0f172a' },
+        lineStyle: { width: isMobile ? 2.2 : 3, color: '#0f172a' },
         itemStyle: { color: '#0f172a' },
         data: periods.map(p => p.avg_iph)
       });
@@ -428,7 +446,7 @@
           type: 'line',
           smooth: true,
           showSymbol: false,
-          lineStyle: { width: 1.8, color: color },
+          lineStyle: { width: isMobile ? 1.5 : 1.8, color: color },
           itemStyle: { color: color },
           data: info.series.map(s => s.iph)
         });
@@ -436,15 +454,15 @@
     }
 
     const option = {
-      grid: { top: 30, right: 20, bottom: 65, left: 45 },
+      grid: { top: 25, right: isMobile ? 12 : 20, bottom: isMobile ? 70 : 65, left: isMobile ? 38 : 45 },
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'cross', lineStyle: { color: '#94a3b8' } },
         formatter: (params) => {
-          let html = `<div style="font-weight:700; margin-bottom:4px;">${params[0].axisValue}</div>`;
+          let html = `<div style="font-weight:700; font-size:12px; margin-bottom:4px;">${params[0].axisValue}</div>`;
           params.forEach(p => {
-            html += `<div style="display:flex; justify-content:space-between; gap:16px;">
-              <span style="color:${p.color};">• ${p.seriesName}:</span>
+            html += `<div style="display:flex; justify-content:space-between; gap:12px; font-size:11px;">
+              <span style="color:${p.color};">• ${p.seriesName.replace('Kab. ', '')}:</span>
               <strong>${p.value !== null && p.value !== undefined ? (p.value > 0 ? '+' : '') + p.value + '%' : '-'}</strong>
             </div>`;
           });
@@ -453,7 +471,9 @@
       },
       legend: {
         bottom: 0,
-        textStyle: { color: '#475569', fontSize: 11 },
+        itemWidth: isMobile ? 14 : 25,
+        itemHeight: isMobile ? 8 : 12,
+        textStyle: { color: '#475569', fontSize: isMobile ? 10 : 11 },
         icon: 'roundRect'
       },
       xAxis: {
@@ -462,7 +482,7 @@
         axisLine: { lineStyle: { color: '#cbd5e1' } },
         axisLabel: {
           color: '#64748b',
-          fontSize: 10,
+          fontSize: isMobile ? 9 : 10,
           formatter: (val) => val.split('-').slice(0, 2).join('-')
         }
       },
@@ -470,7 +490,7 @@
         type: 'value',
         axisLine: { lineStyle: { color: '#cbd5e1' } },
         splitLine: { lineStyle: { color: '#f8fafc' } },
-        axisLabel: { color: '#64748b', fontSize: 10, formatter: '{value}%' }
+        axisLabel: { color: '#64748b', fontSize: isMobile ? 9 : 10, formatter: '{value}%' }
       },
       dataZoom: [
         { type: 'inside', start: 70, end: 100 },
@@ -478,10 +498,11 @@
           type: 'slider',
           start: 70,
           end: 100,
-          height: 18,
-          bottom: 25,
+          height: isMobile ? 14 : 18,
+          bottom: isMobile ? 22 : 25,
           borderColor: '#e2e8f0',
-          fillerColor: 'rgba(15, 23, 42, 0.1)'
+          fillerColor: 'rgba(15, 23, 42, 0.1)',
+          textStyle: { fontSize: isMobile ? 9 : 10 }
         }
       ],
       series: seriesList
@@ -492,12 +513,13 @@
 
   // 7. Commodity Frequency Chart
   function renderCommodityChart() {
+    const isMobile = window.innerWidth < 640;
     const threats = rawData.top_overall_commodities.slice(0, 8);
     const names = threats.map(t => t.name).reverse();
     const counts = threats.map(t => t.count).reverse();
 
     const option = {
-      grid: { top: 10, right: 35, bottom: 20, left: 120 },
+      grid: { top: 10, right: isMobile ? 25 : 35, bottom: 20, left: isMobile ? 95 : 120 },
       tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
@@ -510,20 +532,20 @@
         type: 'value',
         axisLine: { lineStyle: { color: '#cbd5e1' } },
         splitLine: { lineStyle: { color: '#f1f5f9' } },
-        axisLabel: { color: '#64748b', fontSize: 11 }
+        axisLabel: { color: '#64748b', fontSize: isMobile ? 10 : 11 }
       },
       yAxis: {
         type: 'category',
         data: names,
         axisLine: { lineStyle: { color: '#cbd5e1' } },
         axisTick: { show: false },
-        axisLabel: { color: '#334155', fontSize: 11, fontWeight: 500 }
+        axisLabel: { color: '#334155', fontSize: isMobile ? 10 : 11, fontWeight: 500 }
       },
       series: [
         {
           type: 'bar',
           data: counts,
-          barWidth: 14,
+          barWidth: isMobile ? 11 : 14,
           itemStyle: {
             color: '#f59e0b',
             borderRadius: [0, 4, 4, 0]
@@ -549,6 +571,9 @@
 
     dataTableBody.innerHTML = '';
     tableRowsCount.textContent = `Menampilkan ${filtered.length} dari ${p.records.length} daerah`;
+    if (tableRowsCountMobile) {
+      tableRowsCountMobile.textContent = `${filtered.length} daerah`;
+    }
 
     filtered.forEach(r => {
       const tr = document.createElement('tr');
