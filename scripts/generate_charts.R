@@ -25,31 +25,78 @@ theme_siph_senior <- function() {
 }
 
 # ==========================================
-# SLIDE 2: OVERVIEW 2026 (JANUARI - OKTOBER)
+# SLIDE 2: PERKEMBANGAN IPH MINGGUAN (FACET WRAP PER BULAN)
 # ==========================================
-df2 <- data.frame(
-  bulan = factor(c("Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt"),
-                 levels = c("Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt")),
-  iph = c(-0.22, -1.48, 0.82, 1.62, -0.50, -0.58, -1.75, -0.51, 1.05, 0.84)
-)
+suppressPackageStartupMessages({
+  library(jsonlite)
+})
 
-p2 <- ggplot(df2, aes(x = bulan, y = iph, group = 1)) +
-  geom_hline(yintercept = 0, color = "#64748B", linetype = "dashed", linewidth = 0.8) +
-  geom_line(color = "#0284C7", linewidth = 1.8) +
-  geom_point(aes(color = iph > 0), size = 5.2) +
-  scale_color_manual(values = c("TRUE" = "#0284C7", "FALSE" = "#16A34A")) +
-  geom_text(aes(label = sprintf("%+.2f%%", iph),
-                vjust = ifelse(iph >= 0, -1.3, 1.8)),
-            size = 4.4, fontface = "bold", color = "#0F172A") +
-  scale_y_continuous(limits = c(-2.7, 2.7), breaks = seq(-2, 2, 1)) +
+d_raw <- fromJSON("data/iph_sulsel.json")
+p_2026 <- d_raw$periods[d_raw$periods$year == 2026, ]
+
+recs_list <- lapply(1:nrow(p_2026), function(i) {
+  p_row <- p_2026[i, ]
+  recs <- p_row$records[[1]]
+  r_selayar <- recs[recs$kode_kab == "7301", ]
+  if (nrow(r_selayar) > 0) {
+    data.frame(
+      period = p_row$period_key,
+      month = p_row$month,
+      week = p_row$week,
+      iph = r_selayar$iph,
+      status = r_selayar$status,
+      stringsAsFactors = FALSE
+    )
+  } else NULL
+})
+df2_weekly <- do.call(rbind, recs_list)
+
+month_names <- c("Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober")
+df2_weekly$bulan <- factor(month_names[df2_weekly$month], levels = month_names)
+df2_weekly$minggu <- paste0("W", df2_weekly$week)
+
+p2 <- ggplot(df2_weekly, aes(x = minggu, y = iph, fill = iph > 0)) +
+  geom_hline(yintercept = 0, color = "#64748B", linewidth = 0.7, linetype = "dashed") +
+  geom_col(width = 0.65, alpha = 0.95) +
+  geom_text(aes(label = sprintf("%+.1f", iph),
+                vjust = ifelse(iph >= 0, -0.35, 1.25)),
+            size = 2.7, fontface = "bold", color = "#0F172A") +
+  scale_fill_manual(
+    values = c("TRUE" = "#0284C7", "FALSE" = "#16A34A"),
+    labels = c("TRUE" = "Inflasi (IPH > 0%)", "FALSE" = "Deflasi (IPH < 0%)")
+  ) +
+  scale_y_continuous(limits = c(-3.8, 4.8), breaks = seq(-3, 4, 1)) +
+  facet_wrap(~ bulan, nrow = 2, ncol = 5, scales = "free_x") +
   labs(
-    title = "Rata-rata IPH Bulanan Kab. Kepulauan Selayar 2026",
-    subtitle = "Garis putus-putus = Titik Stabil 0%. Titik Hijau = Deflasi, Titik Biru = Inflasi",
+    title = "Perkembangan IPH Mingguan Menurut Bulan (2026)",
+    subtitle = "Kabupaten Kepulauan Selayar • 35 Rilis Mingguan (Januari – Oktober 2026)",
     y = "Nilai IPH (%)"
   ) +
-  theme_siph_senior()
+  theme_minimal(base_family = "Helvetica") +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", color = "#0F172A", margin = margin(b = 4)),
+    plot.subtitle = element_text(size = 10.5, color = "#475569", margin = margin(b = 10)),
+    strip.background = element_rect(fill = "#F8FAFC", color = "#CBD5E1", linewidth = 0.8),
+    strip.text = element_text(size = 10.5, face = "bold", color = "#0F172A", margin = margin(t = 4, b = 4)),
+    axis.text.x = element_text(size = 8.8, face = "bold", color = "#1E293B"),
+    axis.text.y = element_text(size = 8.5, face = "bold", color = "#475569"),
+    axis.title.y = element_text(size = 10, face = "bold", color = "#334155", margin = margin(r = 6)),
+    axis.title.x = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = "#E2E8F0", linewidth = 0.6),
+    panel.border = element_rect(color = "#CBD5E1", fill = NA, linewidth = 0.8),
+    panel.spacing = unit(0.65, "lines"),
+    plot.background = element_rect(fill = "#FFFFFF", color = NA),
+    panel.background = element_rect(fill = "#FFFFFF", color = NA),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 9.5, face = "bold", color = "#334155"),
+    legend.margin = margin(t = 2),
+    plot.margin = margin(10, 12, 8, 10)
+  )
 
-ggsave("assets/charts/chart_slide2.png", plot = p2, width = 6.8, height = 4.8, dpi = 300)
+ggsave("assets/charts/chart_slide2.png", plot = p2, width = 7.0, height = 4.9, dpi = 300)
 
 # ==========================================
 # SLIDE 3: MARET - APRIL 2026 (HBKN IDUL FITRI)
