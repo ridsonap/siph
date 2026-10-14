@@ -6,12 +6,17 @@ Dashboard **Indeks Perkembangan Harga (IPH)** mingguan kabupaten/kota di Sulawes
 
 ## Isi dashboard
 
-| Tampilan | Isi |
+| Tab | Isi |
 |---|---|
-| **Sulawesi Selatan** | Kalimat ringkasan minggu terpilih, 4 angka kunci, peta, peringkat kab/kota, tren rata-rata Sulsel (bisa dibandingkan dengan satu wilayah), komoditas penyumbang & paling bergejolak, tabel rincian + unduh CSV |
-| **Kabupaten/Kota** | Ringkasan per tahun, IPH mingguan vs rata-rata Sulsel, pendorong kenaikan/penurunan, komoditas paling bergejolak, riwayat mingguan + unduh CSV, tautan yang bisa dibagikan |
+| **Ringkasan** | Angka utama rata-rata IPH Sulsel + perubahan dari minggu lalu, kalimat ringkasan otomatis, **status tekanan harga** (posisi minggu ini dibanding seluruh riwayat), 4 kartu sorotan (sebaran naik/turun, pendorong utama, wilayah yang naik beruntun, dibanding tahun lalu), peta & peringkat yang saling terhubung, **heatmap pola mingguan per wilayah**, tren dengan pita rentang antarwilayah (bisa dibandingkan dengan satu wilayah), penyumbang minggu ini, **pola musiman** + bulan rawan, tabel yang bisa diurutkan dengan grafik mini 8 minggu, unduh CSV |
+| **Wilayah** | Profil kab/kota: IPH terbaru, selisih dengan Sulsel, peringkat, arah beruntun, ringkasan per tahun, IPH mingguan vs rata-rata Sulsel, pola musiman, komoditas paling bergejolak, pendorong kenaikan/penurunan, riwayat mingguan + unduh CSV, tautan yang bisa dibagikan |
+| **Komoditas** | Peringkat komoditas penyumbang, profil satu komoditas (berapa kali mendorong naik/turun, bulan puncak, wilayah paling terdampak), grafik per bulan, dan **kalender komoditas** untuk melihat musim rawan |
 
-Semua teks, daftar tahun, minggu, dan wilayah dibentuk otomatis dari `data/iph_sulsel.json`. Tidak ada angka yang ditulis manual di kode, jadi data baru langsung tampil.
+Fitur lain: tombol **Salin ringkasan** (teks siap tempel ke laporan/WhatsApp), mode terang/gelap, tampilan ponsel dengan navigasi bawah, pintasan keyboard ← → untuk ganti minggu, dan tautan langsung (`?periode=`, `?kab=&tahun=`, `?tab=komoditas&kom=`).
+
+Semua teks, insight, daftar tahun, minggu, wilayah, dan komoditas dibentuk otomatis dari `data/iph_sulsel.json`. Tidak ada angka yang ditulis manual di kode, jadi data baru langsung tampil. Nama komoditas yang salah baca OCR (mis. "Cabai Ravit") disatukan otomatis ke nama baku terdekat.
+
+Setelah mengubah `app.js` atau `styles.css`, naikkan angka `?v=` di `index.html` supaya pengunjung tidak memakai versi lama dari cache browser.
 
 ## Menambah data baru (3 langkah)
 

@@ -4,110 +4,179 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SIPH Sulsel — Indeks Perkembangan Harga</title>
-  <meta name="description" content="Dashboard Indeks Perkembangan Harga (IPH) mingguan kabupaten/kota di Sulawesi Selatan, bersumber dari BPS.">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2222%22 fill=%22%230f2a44%22/><path d=%22M18 66 L40 44 L56 58 L82 30%22 stroke=%22%23fff%22 stroke-width=%2210%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+  <meta name="description" content="Dashboard Indeks Perkembangan Harga (IPH) mingguan kabupaten/kota di Sulawesi Selatan: ringkasan otomatis, peta, pola mingguan, dan analisis komoditas. Sumber BPS.">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
+  <meta property="og:title" content="SIPH Sulsel — Indeks Perkembangan Harga">
+  <meta property="og:description" content="Pantau perkembangan harga pangan mingguan 24 kab/kota di Sulawesi Selatan.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2224%22 fill=%22%235b4bdb%22/><path d=%22M20 64 L40 44 L56 56 L80 32%22 stroke=%22%23fff%22 stroke-width=%2210%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>">
+  <script>
+    // Terapkan tema tersimpan sebelum halaman digambar, supaya tidak berkedip.
+    try { const t = localStorage.getItem('siph-theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
+  <a class="skip" href="#main">Lewati ke konten</a>
   <header class="topbar">
     <div class="wrap topbar-inner">
       <a class="brand" href="./" aria-label="SIPH Sulsel, beranda">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M4 16l5-5 4 3 7-7" /></svg>
         </span>
-        <span>
+        <span class="brand-text">
           <strong>SIPH Sulsel</strong>
-          <small>Indeks Perkembangan Harga mingguan</small>
+          <small>Indeks Perkembangan Harga</small>
         </span>
       </a>
-      <nav class="seg" role="tablist" aria-label="Tampilan">
-        <button role="tab" id="tabSulsel" aria-selected="true">Sulawesi Selatan</button>
-        <button role="tab" id="tabKab" aria-selected="false">Kabupaten/Kota</button>
+      <nav class="tabs" role="tablist" aria-label="Tampilan">
+        <button role="tab" id="tabSulsel" data-view="sulsel" aria-selected="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>
+          <span>Ringkasan</span>
+        </button>
+        <button role="tab" id="tabKab" data-view="kab" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+          <span>Wilayah</span>
+        </button>
+        <button role="tab" id="tabKom" data-view="kom" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>
+          <span>Komoditas</span>
+        </button>
       </nav>
-      <button class="btn-ghost help-btn" id="helpBtn" aria-haspopup="dialog">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg>
-        <span>Cara membaca</span>
-      </button>
+      <div class="top-actions">
+        <button class="icon-btn" id="themeBtn" aria-label="Ganti tema terang/gelap" title="Ganti tema">
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        </button>
+        <button class="icon-btn" id="helpBtn" aria-haspopup="dialog" aria-label="Cara membaca" title="Cara membaca">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14"/><circle cx="12" cy="17.2" r=".6" fill="currentColor"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="wrap">
-    <div id="loading" class="loading">Memuat data…</div>
+  <main class="wrap" id="main">
+    <div id="loading" class="loading" aria-live="polite">
+      <div class="sk sk-hero"></div>
+      <div class="sk-row"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
+      <div class="sk sk-big"></div>
+    </div>
     <div id="loadError" class="load-error" hidden></div>
 
-    <!-- ============ TAMPILAN SULAWESI SELATAN ============ -->
-    <section id="viewSulsel" hidden>
-      <div class="toolbar">
-        <label class="field">
-          <span>Minggu</span>
-          <select id="periodSelect"></select>
-        </label>
-        <div class="stepper">
-          <button class="btn-ghost" id="prevPeriod" aria-label="Minggu sebelumnya">‹</button>
-          <button class="btn-ghost" id="nextPeriod" aria-label="Minggu berikutnya">›</button>
+    <!-- ===================== RINGKASAN SULAWESI SELATAN ===================== -->
+    <section id="viewSulsel" class="view" hidden>
+      <div class="period-bar">
+        <div class="period-pick">
+          <button class="icon-btn" id="prevPeriod" aria-label="Minggu sebelumnya" title="Minggu sebelumnya (←)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+          </button>
+          <label class="select-pill">
+            <span class="sr-only">Pilih minggu</span>
+            <select id="periodSelect"></select>
+          </label>
+          <button class="icon-btn" id="nextPeriod" aria-label="Minggu berikutnya" title="Minggu berikutnya (→)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+          <button class="chip-btn" id="latestBtn" hidden>Ke minggu terbaru</button>
+          <span class="badge" id="latestBadge" hidden>Terbaru</span>
         </div>
+        <button class="btn-ghost" id="copySulsel">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+          Salin ringkasan
+        </button>
       </div>
 
-      <p class="headline" id="sHeadline"></p>
+      <section class="hero card" aria-labelledby="heroTitle">
+        <div class="hero-main">
+          <p class="eyebrow" id="heroTitle">Rata-rata IPH Sulawesi Selatan</p>
+          <div class="hero-figure">
+            <span class="hero-value" id="sAvg"></span>
+            <span class="delta" id="sDelta"></span>
+          </div>
+          <p class="hero-text" id="sHeadline"></p>
+          <div class="gauge" id="sGauge">
+            <div class="gauge-head">
+              <span class="pill" id="sStatus"></span>
+              <span class="gauge-note" id="sGaugeNote"></span>
+            </div>
+            <div class="gauge-track" aria-hidden="true">
+              <span class="gauge-zone"></span>
+              <span class="gauge-marker" id="sGaugeMarker"></span>
+            </div>
+            <div class="gauge-scale" aria-hidden="true"><span>Terendah</span><span>Biasanya</span><span>Tertinggi</span></div>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="hero-side-head">
+            <span>12 minggu terakhir</span>
+            <span class="muted-sm">klik batang untuk memilih minggu</span>
+          </div>
+          <div id="sparkChart" class="chart chart-spark" role="img" aria-label="Rata-rata IPH Sulsel 12 minggu terakhir"></div>
+        </div>
+      </section>
 
-      <div class="kpis">
-        <div class="kpi">
-          <span class="kpi-label">Rata-rata IPH Sulsel</span>
-          <span class="kpi-value" id="kAvg"></span>
-          <span class="kpi-sub" id="kAvgSub"></span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Kab/kota naik : turun</span>
-          <span class="kpi-value" id="kCount"></span>
-          <div class="split" id="kSplit" aria-hidden="true"><i class="up"></i><i class="down"></i></div>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label" id="kMaxLabel">Kenaikan tertinggi</span>
-          <span class="kpi-value" id="kMax"></span>
-          <span class="kpi-sub" id="kMaxSub"></span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label" id="kMinLabel">Penurunan terdalam</span>
-          <span class="kpi-value" id="kMin"></span>
-          <span class="kpi-sub" id="kMinSub"></span>
-        </div>
-      </div>
+      <div class="insights" id="sInsights"></div>
 
       <div class="grid-2">
         <article class="card">
           <header class="card-head">
-            <h2>Peta IPH minggu ini</h2>
-            <p>Klik wilayah untuk melihat profilnya.</p>
+            <div>
+              <h2>Peta sebaran</h2>
+              <p>Arahkan kursor untuk rincian, klik untuk membuka profil wilayah.</p>
+            </div>
           </header>
           <div id="mapChart" class="chart chart-map" role="img" aria-label="Peta IPH kabupaten/kota"></div>
           <div class="legend">
-            <span class="legend-scale"><span>Turun</span><i class="ramp"></i><span>Naik</span></span>
+            <span class="legend-scale"><span id="mapMin"></span><i class="ramp"></i><span id="mapMax"></span></span>
             <span class="legend-na"><i></i>Tidak ada rilis IPH</span>
           </div>
         </article>
         <article class="card">
           <header class="card-head">
-            <h2>Peringkat kab/kota</h2>
-            <p>IPH minggu terpilih, dari tertinggi ke terendah.</p>
+            <div>
+              <h2>Peringkat kab/kota</h2>
+              <p>Garis putus-putus: rata-rata Sulsel minggu ini.</p>
+            </div>
           </header>
           <div id="rankChart" class="chart chart-rank" role="img" aria-label="Peringkat IPH kabupaten/kota"></div>
         </article>
       </div>
 
       <article class="card">
-        <header class="card-head card-head-row">
+        <header class="card-head">
           <div>
-            <h2>Tren rata-rata IPH Sulsel</h2>
-            <p>Rata-rata seluruh kab/kota yang dirilis tiap minggu. Geser bilah di bawah grafik untuk mengubah rentang.</p>
+            <h2>Pola mingguan per wilayah</h2>
+            <p id="heatNote">Setiap kotak adalah IPH satu wilayah pada satu minggu. Wilayah yang terus merah berarti harganya naik terus-menerus.</p>
           </div>
-          <label class="field field-inline">
-            <span>Bandingkan</span>
-            <select id="compareSelect"><option value="">—</option></select>
-          </label>
+          <div class="legend legend-inline">
+            <span class="legend-scale"><span>Turun</span><i class="ramp"></i><span>Naik</span></span>
+          </div>
+        </header>
+        <div class="scroll-x"><div id="heatChart" class="chart" role="img" aria-label="Heatmap IPH per wilayah per minggu"></div></div>
+      </article>
+
+      <article class="card">
+        <header class="card-head">
+          <div>
+            <h2>Tren IPH Sulsel</h2>
+            <p>Garis: rata-rata seluruh kab/kota. Pita: rentang IPH terendah–tertinggi antarwilayah. Klik grafik untuk memilih minggu.</p>
+          </div>
+          <div class="head-controls">
+            <div class="seg" id="rangeSeg" role="group" aria-label="Rentang waktu">
+              <button data-range="13">3 bln</button>
+              <button data-range="26">6 bln</button>
+              <button data-range="52" class="on">1 thn</button>
+              <button data-range="all">Semua</button>
+            </div>
+            <label class="select-sm">
+              <span class="sr-only">Bandingkan dengan wilayah</span>
+              <select id="compareSelect"><option value="">+ Bandingkan wilayah</option></select>
+            </label>
+          </div>
         </header>
         <div id="trendChart" class="chart chart-trend" role="img" aria-label="Tren rata-rata IPH Sulawesi Selatan"></div>
       </article>
@@ -115,35 +184,50 @@
       <div class="grid-2">
         <article class="card">
           <header class="card-head">
-            <h2>Penyumbang kenaikan minggu ini</h2>
-            <p>Jumlah kab/kota yang menyebut komoditas ini sebagai penyumbang kenaikan.</p>
+            <div>
+              <h2 id="driverTitle">Penyumbang minggu ini</h2>
+              <p id="driverNote"></p>
+            </div>
           </header>
           <div id="weekDrivers" class="bars"></div>
         </article>
         <article class="card">
           <header class="card-head">
-            <h2 id="yearVolatileTitle">Paling sering bergejolak</h2>
-            <p>Berapa kali tercatat sebagai komoditas dengan fluktuasi harga tertinggi.</p>
+            <div>
+              <h2>Pola musiman</h2>
+              <p>Rata-rata IPH Sulsel per bulan. Bulan yang selalu merah layak diwaspadai lebih awal.</p>
+            </div>
           </header>
-          <div id="yearVolatile" class="bars"></div>
+          <div id="seasonChart" class="chart chart-season" role="img" aria-label="Rata-rata IPH per bulan per tahun"></div>
+          <p class="note" id="seasonChartNote"></p>
         </article>
       </div>
 
-      <article class="card">
-        <header class="card-head card-head-row">
+      <article class="card card-flush">
+        <header class="card-head">
           <div>
             <h2>Rincian per kab/kota</h2>
-            <p id="tableNote">Klik baris untuk membuka profil wilayah.</p>
+            <p id="tableNote"></p>
           </div>
-          <div class="actions">
-            <input type="search" id="tableSearch" placeholder="Cari wilayah atau komoditas" aria-label="Cari wilayah atau komoditas">
+          <div class="head-controls">
+            <label class="search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input type="search" id="tableSearch" placeholder="Cari wilayah atau komoditas" aria-label="Cari wilayah atau komoditas">
+            </label>
             <button class="btn" id="csvWeek">Unduh CSV</button>
           </div>
         </header>
         <div class="table-wrap">
-          <table class="table">
+          <table class="table" id="weekTableEl">
             <thead>
-              <tr><th>Kab/kota</th><th class="num">IPH</th><th>Penyumbang utama (andil)</th><th>Fluktuasi tertinggi</th></tr>
+              <tr>
+                <th><button class="th-sort" data-sort="name">Kab/kota</button></th>
+                <th class="num"><button class="th-sort" data-sort="iph">IPH</button></th>
+                <th class="num"><button class="th-sort" data-sort="delta">vs minggu lalu</button></th>
+                <th class="hide-sm">8 minggu</th>
+                <th>Penyumbang utama (andil)</th>
+                <th class="hide-sm">Fluktuasi tertinggi</th>
+              </tr>
             </thead>
             <tbody id="weekTable"></tbody>
           </table>
@@ -151,89 +235,107 @@
       </article>
     </section>
 
-    <!-- ============ TAMPILAN KABUPATEN/KOTA ============ -->
-    <section id="viewKab" hidden>
-      <div class="toolbar">
-        <label class="field">
-          <span>Wilayah</span>
-          <select id="kabSelect"></select>
-        </label>
-        <label class="field">
-          <span>Tahun</span>
-          <select id="yearSelect"></select>
-        </label>
-        <div class="actions push">
-          <button class="btn-ghost" id="shareBtn">Salin tautan</button>
+    <!-- ===================== PROFIL KABUPATEN/KOTA ===================== -->
+    <section id="viewKab" class="view" hidden>
+      <div class="period-bar">
+        <div class="period-pick">
+          <label class="select-pill select-pill-lg">
+            <span class="sr-only">Pilih wilayah</span>
+            <select id="kabSelect"></select>
+          </label>
+          <div class="seg" id="yearSeg" role="group" aria-label="Tahun"></div>
+        </div>
+        <div class="actions">
+          <button class="btn-ghost" id="copyKab">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+            Salin ringkasan
+          </button>
+          <button class="btn-ghost" id="shareBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>
+            Salin tautan
+          </button>
           <button class="btn" id="csvKab">Unduh CSV</button>
         </div>
       </div>
 
-      <p class="headline" id="kHeadline"></p>
+      <section class="hero card">
+        <div class="hero-main">
+          <p class="eyebrow" id="kbEyebrow"></p>
+          <div class="hero-figure">
+            <span class="hero-value" id="kbLatest"></span>
+            <span class="delta" id="kbDelta"></span>
+          </div>
+          <p class="hero-text" id="kHeadline"></p>
+        </div>
+        <div class="hero-facts" id="kbFacts"></div>
+      </section>
 
-      <div class="kpis">
-        <div class="kpi">
-          <span class="kpi-label">IPH terbaru</span>
-          <span class="kpi-value" id="kbLatest"></span>
-          <span class="kpi-sub" id="kbLatestSub"></span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Rata-rata IPH</span>
-          <span class="kpi-value" id="kbAvg"></span>
-          <span class="kpi-sub" id="kbAvgSub"></span>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Minggu naik : turun</span>
-          <span class="kpi-value" id="kbCount"></span>
-          <div class="split" id="kbSplit" aria-hidden="true"><i class="up"></i><i class="down"></i></div>
-        </div>
-        <div class="kpi">
-          <span class="kpi-label">Paling sering bergejolak</span>
-          <span class="kpi-value kpi-text" id="kbVol"></span>
-          <span class="kpi-sub" id="kbVolSub"></span>
-        </div>
-      </div>
+      <div class="kpis" id="kbKpis"></div>
 
       <article class="card">
         <header class="card-head">
-          <h2>IPH mingguan</h2>
-          <p><span class="dot up"></span>naik <span class="dot down"></span>turun <span class="dash"></span>rata-rata Sulsel</p>
+          <div>
+            <h2>IPH mingguan</h2>
+            <p class="legend-text"><span class="key key-up"></span>naik <span class="key key-down"></span>turun <span class="key key-line"></span>rata-rata Sulsel</p>
+          </div>
         </header>
         <div id="kabChart" class="chart chart-trend" role="img" aria-label="IPH mingguan wilayah terpilih"></div>
       </article>
 
-      <div class="grid-3">
+      <div class="grid-2">
         <article class="card">
           <header class="card-head">
-            <h2>Pendorong kenaikan</h2>
-            <p>Andil tertinggi per komoditas.</p>
+            <div>
+              <h2>Pola musiman</h2>
+              <p>Rata-rata IPH wilayah ini per bulan, semua tahun.</p>
+            </div>
           </header>
-          <div id="kbUp" class="bars"></div>
+          <div id="kabSeasonChart" class="chart chart-season" role="img" aria-label="Rata-rata IPH wilayah per bulan"></div>
+          <p class="note" id="kabSeasonChartNote"></p>
         </article>
         <article class="card">
           <header class="card-head">
-            <h2>Pendorong penurunan</h2>
-            <p>Andil terendah per komoditas.</p>
-          </header>
-          <div id="kbDown" class="bars"></div>
-        </article>
-        <article class="card">
-          <header class="card-head">
-            <h2>Paling sering bergejolak</h2>
-            <p>Frekuensi fluktuasi harga tertinggi.</p>
+            <div>
+              <h2>Paling sering bergejolak</h2>
+              <p>Berapa minggu komoditas ini tercatat dengan fluktuasi harga tertinggi.</p>
+            </div>
           </header>
           <div id="kbFreq" class="bars"></div>
         </article>
       </div>
 
-      <article class="card">
+      <div class="grid-2">
+        <article class="card">
+          <header class="card-head">
+            <div>
+              <h2>Pendorong kenaikan</h2>
+              <p>Seberapa sering komoditas menjadi penyumbang kenaikan, dan andil terbesarnya.</p>
+            </div>
+          </header>
+          <div id="kbUp" class="bars"></div>
+        </article>
+        <article class="card">
+          <header class="card-head">
+            <div>
+              <h2>Pendorong penurunan</h2>
+              <p>Seberapa sering komoditas menjadi penyumbang penurunan, dan andil terbesarnya.</p>
+            </div>
+          </header>
+          <div id="kbDown" class="bars"></div>
+        </article>
+      </div>
+
+      <article class="card card-flush">
         <header class="card-head">
-          <h2>Riwayat mingguan</h2>
-          <p>Terbaru di atas.</p>
+          <div>
+            <h2>Riwayat mingguan</h2>
+            <p>Terbaru di atas.</p>
+          </div>
         </header>
         <div class="table-wrap">
           <table class="table">
             <thead>
-              <tr><th>Minggu</th><th class="num">IPH</th><th>Penyumbang (andil)</th><th>Fluktuasi tertinggi</th></tr>
+              <tr><th>Minggu</th><th class="num">IPH</th><th class="num hide-sm">Rata-rata Sulsel</th><th class="num hide-sm">Peringkat</th><th>Penyumbang (andil)</th><th class="hide-sm">Fluktuasi tertinggi</th></tr>
             </thead>
             <tbody id="kabTable"></tbody>
           </table>
@@ -241,12 +343,75 @@
         <div class="more"><button class="btn-ghost" id="kabMore" hidden></button></div>
       </article>
     </section>
+
+    <!-- ===================== ANALISIS KOMODITAS ===================== -->
+    <section id="viewKom" class="view" hidden>
+      <div class="period-bar">
+        <div class="period-pick">
+          <div class="seg" id="komYearSeg" role="group" aria-label="Tahun"></div>
+        </div>
+      </div>
+
+      <p class="lead" id="komHeadline"></p>
+
+      <div class="kom-layout">
+        <article class="card card-list">
+          <header class="card-head">
+            <div>
+              <h2>Komoditas</h2>
+              <p>Urut menurut seberapa sering menjadi penyumbang. Pilih salah satu.</p>
+            </div>
+          </header>
+          <div id="komList" class="kom-list" role="listbox" aria-label="Daftar komoditas"></div>
+        </article>
+
+        <div class="kom-detail">
+          <section class="card kom-hero">
+            <p class="eyebrow">Komoditas terpilih</p>
+            <h2 class="kom-name" id="komName"></h2>
+            <p class="hero-text" id="komText"></p>
+            <div class="kom-stats" id="komStats"></div>
+          </section>
+          <article class="card">
+            <header class="card-head">
+              <div>
+                <h2>Kapan komoditas ini mendorong harga?</h2>
+                <p>Jumlah kab/kota yang menyebutnya sebagai penyumbang, per bulan.</p>
+                <p class="legend-text"><span class="key key-up"></span>penyumbang kenaikan <span class="key key-down"></span>penyumbang penurunan</p>
+              </div>
+            </header>
+            <div id="komChart" class="chart chart-trend" role="img" aria-label="Frekuensi komoditas sebagai penyumbang per bulan"></div>
+          </article>
+          <article class="card">
+            <header class="card-head">
+              <div>
+                <h2>Wilayah paling terdampak</h2>
+                <p>Berapa minggu komoditas ini menjadi penyumbang kenaikan di tiap wilayah.</p>
+              </div>
+            </header>
+            <div id="komKab" class="bars"></div>
+          </article>
+        </div>
+      </div>
+
+      <article class="card">
+        <header class="card-head">
+          <div>
+            <h2>Kalender komoditas</h2>
+            <p id="komHeatNote">Berapa kali komoditas disebut sebagai penyumbang kenaikan, per bulan. Makin pekat, makin sering.</p>
+          </div>
+        </header>
+        <div class="scroll-x"><div id="komHeat" class="chart" role="img" aria-label="Kalender komoditas penyumbang kenaikan"></div></div>
+      </article>
+    </section>
   </main>
 
   <footer class="wrap footer">
-    <p>Sumber: Badan Pusat Statistik, rilis mingguan Indeks Perkembangan Harga (IPH) kab/kota Sulawesi Selatan.
-      <span id="dataInfo"></span></p>
-    <p><a href="data/iph_sulsel.json" download>Unduh seluruh data (JSON)</a></p>
+    <div>
+      <strong>SIPH Sulsel</strong>
+      <p>Sumber: Badan Pusat Statistik, rilis mingguan Indeks Perkembangan Harga (IPH) kab/kota Sulawesi Selatan. <span id="dataInfo"></span></p>
+    </div>
+    <p class="footer-links"><a href="data/iph_sulsel.json" download>Unduh seluruh data (JSON)</a><span class="kbd-hint"> · Pintasan: <kbd>←</kbd> <kbd>→</kbd> ganti minggu</span></p>
   </footer>
 
   <dialog id="helpDialog" aria-labelledby="helpTitle">
@@ -255,19 +420,21 @@
       <dl>
         <dt>IPH (Indeks Perkembangan Harga)</dt>
         <dd>Perubahan harga sejumlah komoditas pangan di suatu kab/kota pada minggu berjalan dibanding bulan sebelumnya, dalam persen. Dirilis BPS setiap minggu sebagai sinyal dini inflasi.</dd>
-        <dt><span class="up">Positif</span> / <span class="down">negatif</span></dt>
-        <dd>Positif berarti harga cenderung naik; negatif berarti harga cenderung turun.</dd>
+        <dt><span class="up">Merah, tanda +</span> / <span class="down">biru, tanda −</span></dt>
+        <dd>Positif (merah) berarti harga cenderung naik; negatif (biru) berarti harga cenderung turun.</dd>
+        <dt>Status tekanan harga</dt>
+        <dd>Membandingkan rata-rata IPH minggu terpilih dengan seluruh minggu sebelumnya sejak data pertama. “Tinggi” berarti lebih tinggi dari sebagian besar minggu dalam riwayat.</dd>
         <dt>Andil</dt>
         <dd>Sumbangan satu komoditas terhadap IPH. Contoh: andil cabai rawit +1,13 berarti cabai rawit menyumbang 1,13 poin dari kenaikan IPH.</dd>
         <dt>Fluktuasi tertinggi</dt>
         <dd>Komoditas dengan variasi harga (nilai CV) paling besar pada minggu itu. Belum tentu penyumbang kenaikan, tetapi harganya paling tidak stabil.</dd>
-        <dt>Wilayah abu-abu</dt>
+        <dt>Wilayah berarsir</dt>
         <dd>Tidak ada rilis IPH untuk wilayah tersebut pada minggu terpilih; umumnya kota yang inflasinya dihitung melalui IHK.</dd>
       </dl>
-      <button class="btn" value="close">Tutup</button>
+      <button class="btn" value="close">Mengerti</button>
     </form>
   </dialog>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
