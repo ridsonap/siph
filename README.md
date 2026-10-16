@@ -2,6 +2,8 @@
 
 Dashboard **Indeks Perkembangan Harga (IPH)** mingguan kabupaten/kota di Sulawesi Selatan, bersumber dari rilis BPS.
 
+IPH minggu ke-m membandingkan rata-rata harga sejak awal bulan sampai minggu ke-m dengan rata-rata harga seluruh bulan sebelumnya ([metadata BPS](https://sirusa.bps.go.id/metadata/indikator/116881)). Karena nilainya kumulatif dalam bulan, angka bulanan memakai **IPH minggu terakhir yang tersedia**, bukan rata-rata minggu, dan status tekanan harga hanya membandingkan minggu ke-sama antarbulan (`monthly.js` dan `scripts/analyze_kabupaten.py`; dites dengan `node scripts/test_monthly.js` dan `python3 scripts/test_analyze_kabupaten.py`).
+
 🌐 **Dashboard:** [ridsonap.github.io/siph](https://ridsonap.github.io/siph/) · profil wilayah langsung: [`?kab=7301`](https://ridsonap.github.io/siph/?kab=7301)
 
 ## Isi dashboard

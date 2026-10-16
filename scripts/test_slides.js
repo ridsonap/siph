@@ -18,14 +18,14 @@ async function testSlide(slideIndex) {
   } else if (slideIndex === 2) {
     slide.background = { color: 'F8FAFC' };
     const chartData = [{
-      name: 'Rata-rata IPH Bulanan (%)',
+      name: 'IPH Akhir Bulan (%)',
       labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-      values: [1.72, 0.02, -0.33, 0.29, -1.40, 1.49, 0.28, 0.78, -1.07, -0.03, -0.11, 1.73]
+      values: [1.94, -0.25, -0.32, -0.38, -1.56, 0.40, 0.55, 0.40, -1.17, -0.07, -0.24, 2.19]
     }];
     slide.addChart(pres.ChartType.line, chartData, {
       x: 0.8, y: 2.0, w: 6.8, h: 4.7,
       showTitle: true,
-      title: 'Rata-rata IPH Bulanan Selayar 2025 (%)',
+      title: 'IPH Akhir Bulan Selayar 2025 (%)',
       titleFontSize: 13,
       showValue: true,
       chartColors: ['0284C7'],

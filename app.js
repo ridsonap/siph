@@ -157,15 +157,12 @@
     return { n, s };
   }
 
-  /** Posisi rata-rata IPH minggu i dibanding seluruh minggu sebelumnya (0–100). */
+  /** Posisi rata-rata IPH minggu i dibanding minggu ke-sama pada bulan-bulan sebelumnya (0–100).
+   *  IPH kumulatif dalam bulan, jadi M1 hanya sebanding dengan M1 (M4 dan M5 digabung); lihat monthly.js. */
   function percentile(i) {
-    if (i < 9) return null;
-    const cur = periods[i].avg;
-    const hist = periods.slice(0, i + 1).map(p => p.avg);
-    const below = hist.filter(a => a < cur).length;
-    const eq = hist.filter(a => a === cur).length - 1;
-    return (below + eq / 2) / (hist.length - 1) * 100;
+    return IPHMonthly.weekPercentile(periods.map(p => ({ week: p.week, v: p.avg })), i);
   }
+  const peerWeeks = w => IPHMonthly.weekClass(w) >= 4 ? 'minggu ke-4/5' : `minggu ke-${w}`;
   function statusOf(pct) {
     if (pct === null) return { label: 'Belum cukup riwayat', cls: '' };
     if (pct >= 90) return { label: 'Tekanan harga sangat tinggi', cls: 'up' };
@@ -331,7 +328,9 @@
     if (prev) {
       const d = round2(p.avg - prev.avg);
       $('sDelta').className = `delta ${tone(d)}`;
-      $('sDelta').innerHTML = `${d > 0 ? '▲' : d < 0 ? '▼' : '■'} ${fmtPt(d)} <small>vs minggu lalu</small>`;
+      // Minggu ke-1 dibanding bulan baru, minggu sebelumnya dibanding bulan lama: selisihnya bukan perubahan harga mingguan
+      const newBase = prev.month !== p.month || prev.year !== p.year;
+      $('sDelta').innerHTML = `${d > 0 ? '▲' : d < 0 ? '▼' : '■'} ${fmtPt(d)} <small>vs minggu lalu${newBase ? ' · basis bulan berganti' : ''}</small>`;
     } else { $('sDelta').className = 'delta'; $('sDelta').textContent = 'Rilis pertama'; }
     $('sHeadline').innerHTML = sulselNarrative(f).html;
 
@@ -341,8 +340,8 @@
       $('sStatus').className = `pill ${status.cls}`;
       $('sStatus').textContent = status.label;
       $('sGaugeNote').textContent = pct >= 50
-        ? `lebih tinggi dari ${Math.round(pct)}% minggu sejak ${MON3[first.month]} ${first.year}`
-        : `lebih rendah dari ${Math.round(100 - pct)}% minggu sejak ${MON3[first.month]} ${first.year}`;
+        ? `lebih tinggi dari ${Math.round(pct)}% ${peerWeeks(p.week)} sejak ${MON3[first.month]} ${first.year}`
+        : `lebih rendah dari ${Math.round(100 - pct)}% ${peerWeeks(p.week)} sejak ${MON3[first.month]} ${first.year}`;
       $('sGaugeMarker').style.left = `${Math.min(98, Math.max(2, pct))}%`;
     }
 
@@ -353,7 +352,7 @@
     renderWeekHeat(i);
     renderTrend();
     renderDrivers(f);
-    renderSeason('seasonChart', periods.map(q => ({ year: q.year, month: q.month, v: q.avg })), p);
+    renderSeason('seasonChart', periods.map(q => ({ year: q.year, month: q.month, week: q.week, v: q.avg })), p);
     renderWeekTable();
     writeUrl();
   }
@@ -448,11 +447,14 @@
         body: `${ly.label} rata-ratanya ${fmt(ly.avg)}. Tekanan harga tahun ini <strong>${d > 0 ? 'lebih tinggi' : d < 0 ? 'lebih rendah' : 'sama'}</strong>.`
       }));
     } else {
-      const ytd = periods.filter(q => q.year === p.year && q.i <= p.i);
-      const avg = round2(mean(ytd.map(q => q.avg)));
+      // IPH kumulatif dalam bulan, jadi ringkasan tahunan memakai IPH akhir tiap bulan, bukan rata-rata mingguan
+      const ms = IPHMonthly.monthlyIph(periods.filter(q => q.year === p.year && q.i <= p.i)
+        .map(q => ({ year: q.year, month: q.month, week: q.week, v: q.avg })));
+      const up = ms.filter(m => m.v > 0).length;
+      const t = tone(up - (ms.length - up));
       cards.push(insightCard({
-        icon: 'cal', iconTone: tone(avg), title: `Sepanjang ${p.year}`, value: fmt(avg), valueTone: tone(avg),
-        body: `Rata-rata dari ${ytd.length} minggu; ${ytd.filter(q => q.avg > 0).length} minggu di antaranya naik.`
+        icon: 'cal', iconTone: t, title: `Sepanjang ${p.year}`, value: `${up} dari ${ms.length} bulan naik`, valueTone: t,
+        body: `Berdasarkan IPH akhir tiap bulan dibanding bulan sebelumnya${ms.at(-1).partial ? `; ${MONTH[ms.at(-1).month]} baru sampai minggu ke-${ms.at(-1).week}` : ''}.`
       }));
     }
     $('sInsights').innerHTML = cards.join('');
@@ -536,14 +538,15 @@
     const codes = [...new Set(win.flatMap(q => q.recs.map(r => r.code)))];
     const rows = codes.map(code => {
       const vals = win.map(q => { const r = recOf(q, code); return r ? r.iph : null; });
-      const v = vals.filter(x => x !== null);
-      return { code, name: shortName(kabName[code]), vals, avg: mean(v) };
+      // Urutan: rata-rata IPH akhir bulan dalam rentang, tiap bulan dihitung sekali
+      const avg = IPHMonthly.meanMonthly(win.flatMap((q, k) => vals[k] === null ? [] : [{ year: q.year, month: q.month, week: q.week, v: vals[k] }]));
+      return { code, name: shortName(kabName[code]), vals, avg };
     }).sort((a, b) => a.avg - b.avg); // terbawah = rata-rata terendah, teratas = tertinggi
     const all = rows.flatMap(r => r.vals.filter(v => v !== null));
     const lim = Math.max(2, Math.ceil(Math.max(...all.map(Math.abs)) * 0.8));
     const el = $('heatChart');
     el.style.height = `${rows.length * 28 + 56}px`;
-    $('heatNote').textContent = `IPH tiap wilayah, ${win.length} minggu terakhir sampai ${periods[i].label}. Wilayah diurutkan dari rata-rata tertinggi. Klik kotak untuk memilih minggu.`;
+    $('heatNote').textContent = `IPH tiap wilayah, ${win.length} minggu terakhir sampai ${periods[i].label}. Wilayah diurutkan dari rata-rata IPH akhir bulan tertinggi (tiap bulan dihitung sekali). Klik kotak untuk memilih minggu.`;
     const c = chart('heatChart', ch => {
       ch.on('click', d => {
         if (d.componentType === 'yAxis') { const r = state.heatRows.find(x => x.name === d.value); if (r) openKab(r.code); return; }
@@ -661,11 +664,10 @@
     })), { empty: 'Tidak ada data andil.' });
   }
 
-  /** Heatmap tahun × bulan dari deret {year, month, v}; menyorot bulan periode terpilih bila diberikan. */
+  /** Heatmap tahun × bulan dari deret mingguan {year, month, week, v}; menyorot bulan periode terpilih bila diberikan.
+   *  Nilai tiap bulan = IPH minggu terakhir yang tersedia (IPH kumulatif dalam bulan, lihat monthly.js). */
   function renderSeason(id, entries, curP) {
-    const agg = new Map();
-    entries.forEach(e => { const k = `${e.year}-${e.month}`; const a = agg.get(k) || { year: e.year, month: e.month, s: 0, n: 0 }; a.s += e.v; a.n++; agg.set(k, a); });
-    const cells = [...agg.values()].map(a => ({ ...a, v: round2(a.s / a.n) }));
+    const cells = IPHMonthly.monthlyIph(entries);
     const ys = [...new Set(cells.map(a => a.year))].sort((a, b) => a - b);
     const lim = Math.max(1, Math.ceil(Math.max(...cells.map(a => Math.abs(a.v)))));
     const narrow = isNarrow();
@@ -676,7 +678,7 @@
     c.setOption({
       ...base(),
       grid: { left: 4, right: 4, top: 4, bottom: 4, containLabel: true },
-      tooltip: tip({ formatter: d => { const a = cells.find(x => x.year === ys[d.value[1]] && x.month === d.value[0] + 1); return tipHead(`${MONTH[a.month]} ${a.year}`) + tipRow('Rata-rata IPH', tipVal(a.v)) + tipRow('Jumlah minggu', a.n); } }),
+      tooltip: tip({ formatter: d => { const a = cells.find(x => x.year === ys[d.value[1]] && x.month === d.value[0] + 1); return tipHead(`${MONTH[a.month]} ${a.year}`) + tipRow('IPH akhir bulan', tipVal(a.v)) + tipRow('Dari minggu', `M${a.week}${a.partial ? ' (data parsial)' : ''}`); } }),
       xAxis: { type: 'category', data: MON3.slice(1), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: T.muted, fontSize: narrow ? 10 : 11.5, interval: 0 } },
       yAxis: { type: 'category', data: ys.map(String), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: T.ink, fontWeight: 600 } },
       visualMap: divergingMap(lim),
@@ -686,7 +688,7 @@
           const isCur = curP && a.year === curP.year && a.month === curP.month;
           return {
             value: [a.month - 1, ys.indexOf(a.year), a.v],
-            label: { show: !narrow, formatter: () => { const v1 = Math.round(a.v * 10) / 10; return `${sgn(v1)}${nf1.format(Math.abs(v1))}`; }, color: cellLabelColor(a.v, lim), fontSize: 11, fontWeight: 600 },
+            label: { show: !narrow, formatter: () => { const v1 = Math.round(a.v * 10) / 10; return `${sgn(v1)}${nf1.format(Math.abs(v1))}${a.partial ? '*' : ''}`; }, color: cellLabelColor(a.v, lim), fontSize: 11, fontWeight: 600 },
             itemStyle: isCur ? { borderColor: T.ink, borderWidth: 2 } : undefined
           };
         }),
@@ -695,19 +697,21 @@
       }]
     }, true);
 
-    // Kesimpulan: bulan dengan kenaikan paling konsisten antartahun
+    // Kesimpulan: bulan dengan kenaikan paling konsisten antartahun (bulan berdata parsial tidak ikut dihitung)
     const note = $(`${id}Note`);
     if (note) {
       const byM = MON3.slice(1).map((_, k) => {
-        const cs = cells.filter(a => a.month === k + 1);
+        const cs = cells.filter(a => a.month === k + 1 && !a.partial);
         return { m: k + 1, n: cs.length, up: cs.filter(a => a.v > 0).length, avg: cs.length ? mean(cs.map(a => a.v)) : 0 };
       }).filter(x => x.n >= 2);
       const hot = [...byM].sort((a, b) => b.up / b.n - a.up / a.n || b.avg - a.avg).slice(0, 2).filter(x => x.up / x.n >= 0.6);
       const cool = [...byM].sort((a, b) => a.avg - b.avg)[0];
-      note.innerHTML = hot.length
-        ? `<strong>Bulan rawan:</strong> ${hot.map(x => `${MONTH[x.m]} (naik ${x.up} dari ${x.n} tahun, rata-rata ${fmt(round2(x.avg))})`).join(' dan ')}.` +
+      const nPartial = cells.filter(a => a.partial).length;
+      note.innerHTML = (hot.length
+        ? `<strong>Bulan rawan:</strong> ${hot.map(x => `${MONTH[x.m]} (naik ${x.up} dari ${x.n} tahun, rata-rata antartahun ${fmt(round2(x.avg))})`).join(' dan ')}.` +
           (cool && cool.avg < 0 ? ` Harga paling sering mereda pada ${MONTH[cool.m]}.` : '')
-        : 'Belum ada bulan yang konsisten naik setiap tahun.';
+        : 'Belum ada bulan yang konsisten naik setiap tahun.') +
+        (nPartial ? ' * Data belum sampai minggu ke-4; tidak ikut dihitung.' : '');
     }
   }
 
@@ -754,22 +758,24 @@
     if (state.year !== 'semua' && !kabYears.includes(state.year)) state.year = kabYears[0];
     const rows = periods.filter(p => (state.year === 'semua' || p.year === state.year) && recOf(p, code)).map(p => ({ p, r: recOf(p, code) }));
     const yearText = state.year === 'semua' ? `${kabYears[kabYears.length - 1]}–${kabYears[0]}` : String(state.year);
-    const vals = rows.map(x => x.r.iph);
-    const avg = round2(mean(vals));
-    const avgSulsel = round2(mean(rows.map(x => x.p.avg)));
-    const nUp = vals.filter(v => v > 0).length, nDown = vals.filter(v => v < 0).length;
+    // Ringkasan per bulan dari IPH akhir bulan: IPH kumulatif dalam bulan, jadi rata-rata mingguan bias ke minggu awal
+    const byMonth = f => rows.map(x => ({ year: x.p.year, month: x.p.month, week: x.p.week, v: f(x) }));
+    const months = IPHMonthly.monthlyIph(byMonth(x => x.r.iph));
+    const avg = IPHMonthly.meanMonthly(byMonth(x => x.r.iph));
+    const avgSulsel = IPHMonthly.meanMonthly(byMonth(x => x.p.avg));
+    const nUp = months.filter(m => m.v > 0).length, nDown = months.filter(m => m.v < 0).length;
     const hi = rows.reduce((a, b) => (b.r.iph > a.r.iph ? b : a));
     const lo = rows.reduce((a, b) => (b.r.iph < a.r.iph ? b : a));
     const last = rows[rows.length - 1];
     const freq = countBy(rows.map(x => x.r), r => r.fluk);
-    return { code, name, kabYears, rows, yearText, avg, avgSulsel, nUp, nDown, hi, lo, last, freq };
+    return { code, name, kabYears, rows, months, yearText, avg, avgSulsel, nUp, nDown, hi, lo, last, freq };
   }
 
   function kabNarrative(k) {
-    const { name, rows, yearText, avg, avgSulsel, nUp, nDown, hi, lo, freq } = k;
+    const { name, months, yearText, avg, avgSulsel, nUp, nDown, hi, lo, freq } = k;
     const cmp = avg > avgSulsel ? 'lebih tinggi dari' : avg < avgSulsel ? 'lebih rendah dari' : 'sama dengan';
-    return `Sepanjang <strong>${yearText}</strong>, rata-rata IPH ${esc(shortName(name))} <strong class="${tone(avg)}">${fmt(avg)}</strong>, ${cmp} rata-rata Sulsel (${fmt(avgSulsel)}). ` +
-      `Harga naik pada ${nUp} dan turun pada ${nDown} dari ${rows.length} minggu. ` +
+    return `Sepanjang <strong>${yearText}</strong>, rata-rata IPH akhir bulan ${esc(shortName(name))} <strong class="${tone(avg)}">${fmt(avg)}</strong>, ${cmp} Sulsel (${fmt(avgSulsel)}). ` +
+      `Harga naik pada ${nUp} dan turun pada ${nDown} dari ${months.length} bulan. ` +
       `Kenaikan tertinggi <strong class="up">${fmt(hi.r.iph)}</strong> pada ${esc(hi.p.label)}${mainDriver(hi.r) ? ` (terutama ${esc(mainDriver(hi.r).toLowerCase())})` : ''}` +
       `; penurunan terdalam <strong class="down">${fmt(lo.r.iph)}</strong> pada ${esc(lo.p.label)}.` +
       (freq.length ? ` Komoditas paling sering bergejolak: <strong>${esc(freq[0][0])}</strong>.` : '');
@@ -784,7 +790,7 @@
 
   function renderKab() {
     const k = kabFacts();
-    const { code, name, kabYears, rows, yearText, avg, avgSulsel, nUp, nDown, hi, lo, last, freq } = k;
+    const { code, name, kabYears, rows, months, yearText, avg, avgSulsel, nUp, nDown, hi, lo, last, freq } = k;
 
     $('kabSelect').value = code;
     $('yearSeg').innerHTML = kabYears.map(y => `<button data-year="${y}" class="${state.year === y ? 'on' : ''}">${y}</button>`).join('') +
@@ -802,24 +808,24 @@
 
     const st = streak(code, p.i);
     const prevRec = recOf(periods[p.i - 1], code);
-    const last4 = periods.slice(Math.max(0, p.i - 3), p.i + 1).map(q => recOf(q, code)).filter(Boolean).map(x => x.iph);
-    const avg4 = round2(mean(last4));
+    const prevMonth = IPHMonthly.monthlyIph(periods.slice(0, p.i).filter(q => recOf(q, code) && (q.year !== p.year || q.month !== p.month))
+      .map(q => ({ year: q.year, month: q.month, week: q.week, v: recOf(q, code).iph }))).at(-1);
     $('kbFacts').innerHTML = [
       fact('Peringkat minggu itu', `${r.rank} <small style="display:inline;font-size:14px">dari ${r.of}</small>`, r.rank === 1 ? 'kenaikan tertinggi di Sulsel' : r.rank === r.of ? 'terendah di Sulsel' : '1 = IPH tertinggi'),
       fact('Arah beruntun', st.n ? `${st.s > 0 ? 'Naik' : 'Turun'} ${st.n} mgg` : 'Stabil', st.n >= 3 ? 'perlu dipantau' : 'minggu berturut-turut', st.s > 0 ? 'up' : st.s < 0 ? 'down' : ''),
       fact('Minggu sebelumnya', prevRec ? fmt(prevRec.iph) : '–', prevRec ? periods[p.i - 1].label : 'tidak ada rilis', prevRec ? tone(prevRec.iph) : ''),
-      fact('Rata-rata 4 minggu', fmt(avg4), `${last4.length} rilis terakhir`, tone(avg4))
+      fact('Akhir bulan lalu', prevMonth ? fmt(prevMonth.v) : '–', prevMonth ? `${MONTH[prevMonth.month]} ${prevMonth.year}, minggu ${prevMonth.week}` : 'tidak ada rilis', prevMonth ? tone(prevMonth.v) : '')
     ].join('');
 
     $('kbKpis').innerHTML = [
-      kpi('Rata-rata IPH', fmt(avg), `Sulsel ${fmt(avgSulsel)} · ${rows.length} minggu, ${yearText}`, tone(avg)),
-      kpi('Minggu naik : turun', `${nUp} : ${nDown}`, `${Math.round(nUp / rows.length * 100)}% minggu harga naik`, '', split(nUp, nDown, rows.length)),
+      kpi('Rata-rata IPH akhir bulan', fmt(avg), `Sulsel ${fmt(avgSulsel)} · ${months.length} bulan, ${yearText}`, tone(avg)),
+      kpi('Bulan naik : turun', `${nUp} : ${nDown}`, `${Math.round(nUp / months.length * 100)}% bulan harga naik`, '', split(nUp, nDown, months.length)),
       kpi('Kenaikan tertinggi', fmt(hi.r.iph), esc(hi.p.label), tone(hi.r.iph)),
       kpi('Penurunan terdalam', fmt(lo.r.iph), esc(lo.p.label), tone(lo.r.iph))
     ].join('');
 
     renderKabChart(rows);
-    renderSeason('kabSeasonChart', periods.filter(q => recOf(q, code)).map(q => ({ year: q.year, month: q.month, v: recOf(q, code).iph })),
+    renderSeason('kabSeasonChart', periods.filter(q => recOf(q, code)).map(q => ({ year: q.year, month: q.month, week: q.week, v: recOf(q, code).iph })),
       state.year === 'semua' ? null : last.p);
 
     barList($('kbFreq'), freq.slice(0, 6).map(([nm, c], i) => ({
@@ -1073,8 +1079,8 @@
     const f = weekFacts(state.pIdx);
     const { p, prev, status, pct } = f;
     const lines = [`*Ringkasan IPH Sulawesi Selatan — ${p.label}*`, '',
-      `Rata-rata IPH: ${fmt(p.avg)}${prev ? ` (${fmtPt(round2(p.avg - prev.avg))} dari minggu lalu)` : ''}.`];
-    if (pct !== null) lines.push(`Status: ${status.label} (${pct >= 50 ? `lebih tinggi dari ${Math.round(pct)}%` : `lebih rendah dari ${Math.round(100 - pct)}%`} minggu sejak ${MONTH[periods[0].month]} ${periods[0].year}).`);
+      `Rata-rata IPH: ${fmt(p.avg)}${prev ? ` (${fmtPt(round2(p.avg - prev.avg))} dari minggu lalu${prev.month !== p.month || prev.year !== p.year ? '; basis bulan berganti' : ''})` : ''}.`];
+    if (pct !== null) lines.push(`Status: ${status.label} (${pct >= 50 ? `lebih tinggi dari ${Math.round(pct)}%` : `lebih rendah dari ${Math.round(100 - pct)}%`} ${peerWeeks(p.week)} sejak ${MONTH[periods[0].month]} ${periods[0].year}).`);
     lines.push(plain(sulselNarrative(f).html));
     const recs = [...p.recs].sort((a, b) => b.iph - a.iph);
     lines.push('', 'IPH tertinggi:', ...recs.slice(0, 3).map((r, k) => `${k + 1}. ${r.name} ${fmt(r.iph)}`));

@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body>
   <a class="skip" href="#main">Lewati ke konten</a>
@@ -195,10 +195,10 @@
           <header class="card-head">
             <div>
               <h2>Pola musiman</h2>
-              <p>Rata-rata IPH Sulsel per bulan. Bulan yang selalu merah layak diwaspadai lebih awal.</p>
+              <p>IPH akhir bulan (minggu terakhir yang tersedia) rata-rata Sulsel. Bulan yang selalu merah layak diwaspadai lebih awal.</p>
             </div>
           </header>
-          <div id="seasonChart" class="chart chart-season" role="img" aria-label="Rata-rata IPH per bulan per tahun"></div>
+          <div id="seasonChart" class="chart chart-season" role="img" aria-label="IPH akhir bulan per tahun"></div>
           <p class="note" id="seasonChartNote"></p>
         </article>
       </div>
@@ -287,10 +287,10 @@
           <header class="card-head">
             <div>
               <h2>Pola musiman</h2>
-              <p>Rata-rata IPH wilayah ini per bulan, semua tahun.</p>
+              <p>IPH akhir bulan (minggu terakhir yang tersedia) wilayah ini, semua tahun.</p>
             </div>
           </header>
-          <div id="kabSeasonChart" class="chart chart-season" role="img" aria-label="Rata-rata IPH wilayah per bulan"></div>
+          <div id="kabSeasonChart" class="chart chart-season" role="img" aria-label="IPH akhir bulan wilayah ini per tahun"></div>
           <p class="note" id="kabSeasonChartNote"></p>
         </article>
         <article class="card">
@@ -419,11 +419,13 @@
       <h2 id="helpTitle">Cara membaca dashboard ini</h2>
       <dl>
         <dt>IPH (Indeks Perkembangan Harga)</dt>
-        <dd>Perubahan harga sejumlah komoditas pangan di suatu kab/kota pada minggu berjalan dibanding bulan sebelumnya, dalam persen. Dirilis BPS setiap minggu sebagai sinyal dini inflasi.</dd>
+        <dd>Perubahan harga sejumlah komoditas pangan di suatu kab/kota, dalam persen: rata-rata harga sejak awal bulan sampai minggu berjalan dibanding rata-rata harga bulan sebelumnya. Dirilis BPS setiap minggu sebagai sinyal dini inflasi.</dd>
+        <dt>IPH akhir bulan</dt>
+        <dd>Karena IPH dihitung kumulatif sejak awal bulan, angka bulanan diambil dari minggu terakhir yang tersedia, bukan rata-rata minggu. Tanda * berarti data bulan itu belum sampai minggu ke-4.</dd>
         <dt><span class="up">Merah, tanda +</span> / <span class="down">biru, tanda −</span></dt>
         <dd>Positif (merah) berarti harga cenderung naik; negatif (biru) berarti harga cenderung turun.</dd>
         <dt>Status tekanan harga</dt>
-        <dd>Membandingkan rata-rata IPH minggu terpilih dengan seluruh minggu sebelumnya sejak data pertama. “Tinggi” berarti lebih tinggi dari sebagian besar minggu dalam riwayat.</dd>
+        <dd>Membandingkan rata-rata IPH minggu terpilih dengan minggu ke-sama pada bulan-bulan sebelumnya (minggu ke-4 dan ke-5 digabung), karena IPH dihitung kumulatif sejak awal bulan. “Tinggi” berarti lebih tinggi dari sebagian besar minggu pembanding dalam riwayat.</dd>
         <dt>Andil</dt>
         <dd>Sumbangan satu komoditas terhadap IPH. Contoh: andil cabai rawit +1,13 berarti cabai rawit menyumbang 1,13 poin dari kenaikan IPH.</dd>
         <dt>Fluktuasi tertinggi</dt>
@@ -435,6 +437,7 @@
     </form>
   </dialog>
 
-  <script src="app.js?v=8"></script>
+  <script src="monthly.js?v=10"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

@@ -14,6 +14,24 @@ def load_data(filepath='data/iph_sulsel.json'):
     with open(filepath, 'r', encoding='utf-8') as f:
         return json.load(f)
 
+def month_end_mean(records):
+    """Mean IPH with each month counted once, using its last available week.
+
+    BPS computes the IPH of week m from prices since the start of the month against the previous
+    month's average, so weekly values are cumulative within a month and a plain weekly mean
+    overweights the early weeks. Records need 'year', 'month', 'week' and 'iph'.
+    """
+    last = {}
+    for r in records:
+        if r.get('iph') is None:
+            continue
+        key = (r['year'], r['month'])
+        if key not in last or r['week'] > last[key]['week']:
+            last[key] = r
+    if not last:
+        return None
+    return round(sum(r['iph'] for r in last.values()) / len(last), 2)
+
 def analyze_regency(data, target_query, target_year=None):
     target_query = target_query.lower().strip()
     
@@ -55,6 +73,9 @@ def analyze_regency(data, target_query, target_year=None):
             weekly_records.append({
                 'period_key': pk,
                 'label': p.get('label'),
+                'year': p['year'],
+                'month': p['month'],
+                'week': p['week'],
                 'sulsel_avg': sulsel_avg,
                 'iph': target_rec.get('iph'),
                 'status': target_rec.get('status'),
@@ -70,8 +91,7 @@ def analyze_regency(data, target_query, target_year=None):
         return None
 
     # 3. Calculate Aggregations
-    iph_vals = [r['iph'] for r in weekly_records if r['iph'] is not None]
-    avg_iph = sum(iph_vals) / len(iph_vals) if iph_vals else 0
+    avg_iph = month_end_mean(weekly_records) or 0
     max_rec = max(weekly_records, key=lambda x: x['iph'] if x['iph'] is not None else -999)
     min_rec = min(weekly_records, key=lambda x: x['iph'] if x['iph'] is not None else 999)
 
@@ -123,7 +143,7 @@ def analyze_regency(data, target_query, target_year=None):
         'nama': matched_name,
         'tahun': target_year or 'Semua Periode',
         'total_minggu': len(weekly_records),
-        'avg_iph': round(avg_iph, 2),
+        'avg_iph': avg_iph,
         'status_distribusi': {'naik': naik_cnt, 'turun': turun_cnt, 'stabil': stabil_cnt},
         'max_peak': {'period': max_rec['period_key'], 'label': max_rec['label'], 'iph': max_rec['iph'], 'komoditas': max_rec['komoditas']},
         'min_trough': {'period': min_rec['period_key'], 'label': min_rec['label'], 'iph': min_rec['iph'], 'komoditas': min_rec['komoditas']},
@@ -153,7 +173,7 @@ def print_text_summary(res):
             print(f"    - Andil Komoditas: {comms_str}")
 
     print(f"\n[2] INDIKATOR AGREGAT:")
-    print(f"    - Rata-rata IPH: {res['avg_iph']:+.2f}%")
+    print(f"    - Rata-rata IPH akhir bulan: {res['avg_iph']:+.2f}%")
     print(f"    - Tren Status: Naik {res['status_distribusi']['naik']}x, Turun {res['status_distribusi']['turun']}x, Stabil {res['status_distribusi']['stabil']}x")
     print(f"    - Puncak Inflasi Tertinggi: {res['max_peak']['label']} ({res['max_peak']['iph']:+.2f}%)")
     print(f"    - Titik Deflasi Terendah  : {res['min_trough']['label']} ({res['min_trough']['iph']:+.2f}%)")
